@@ -13,6 +13,8 @@
 #include "Object/Block.hpp"
 
 
+#include <common/ImGuiWrapper.hpp>
+
 
 int g_windowSizeX = 640;
 int g_windowSizeY = 480;
@@ -45,6 +47,8 @@ int main(const int argc, const char** argv)
                         .openglProfile = glfw::OpenGlProfile::Core }.apply();
 
     glfw::Window pWindow{ g_windowSizeX, g_windowSizeY, "VoxelEngine" };
+
+
 
 
     pWindow.framebufferSizeEvent.setCallback(glfwWindowSizeCallback);
@@ -82,13 +86,13 @@ int main(const int argc, const char** argv)
         {
            color = vertex_color;
         
-           gl_Position =  (pos_matrix * scale_matrix) * vec4(vertex_position, 1.0);
+           gl_Position = (pos_matrix * scale_matrix) * vec4(vertex_position, 1.0);
         
         }
     )";
 
     const char* src_frag = R"(
-       #version 460
+        #version 460
 
         in vec3 color;
         out vec4 frag_color;
@@ -106,12 +110,17 @@ int main(const int argc, const char** argv)
     Block b2({1.1f, 1.1f, 1.1f}, { 1.0f, 1.0f, 1.0f });
 
 
+
+    ImGuiWrapper::init_imgui(pWindow);
+
+
+
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(pWindow))
     {
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT);
-
+        
         b1.draw(proj);
         b2.draw(proj);
 
@@ -123,9 +132,14 @@ int main(const int argc, const char** argv)
         b2.set_scale({ sin(glfwGetTime()), cos(glfwGetTime()), 0.f });
 
 
+        ImGuiWrapper::update_imgui();
+
+
         pWindow.swapBuffers();
         glfw::pollEvents();
-    }
 
+
+    }
+    ImGuiWrapper::destroy_imgui_context();
     return 0;
 }

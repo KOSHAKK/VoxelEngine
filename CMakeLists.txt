@@ -23,6 +23,10 @@ add_executable(${PROJECT_NAME}
 	
 	src/Object/Block.cpp
 	src/Object/Block.hpp
+	
+	src/common/ImGuiWrapper.cpp
+	src/common/ImGuiWrapper.hpp
+
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC src)
