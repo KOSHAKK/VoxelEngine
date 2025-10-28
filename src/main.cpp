@@ -1,7 +1,7 @@
 ﻿#include "common/Log.hpp"
 
 #include <glad/glad.h>
-#include <GLFW/glfw3.h>
+#include <glfwpp/glfwpp.h>
 
 #include <iostream>
 
@@ -11,6 +11,7 @@
 #include "OpenGL/VertexArray.hpp"
 
 #include "Object/Block.hpp"
+
 
 
 int g_windowSizeX = 640;
@@ -23,10 +24,11 @@ void glfwWindowSizeCallback(GLFWwindow* pWindow, int width, int height)
     glViewport(0, 0, g_windowSizeX, g_windowSizeY);
 }
 
-void glfwKeyCallback(GLFWwindow* pWindow, int key, int scancode, int action, int mode)
+void glfwKeyCallback(glfw::Window& pWindow, glfw::KeyCode keyCode_, int scanCode_, glfw::KeyState state_, glfw::ModifierKeyBit modifiers_)
 {
-    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+    if (keyCode_ == glfw::KeyCode::Escape && state_ == glfw::KeyState::Press)
     {
+        
         glfwSetWindowShouldClose(pWindow, GL_TRUE);
     }
 }
@@ -35,37 +37,30 @@ int main(const int argc, const char** argv)
 {
     spdlog::set_pattern("%^[%l]%$ %v");
 
-    /* Initialize the library */
-    if (!glfwInit())
-    {
-        LOG_CRITICAL("glfwInit failed!");
-        return -1;
-    }
+    [[maybe_unused]] auto GLFW = glfw::init();
+    
 
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfw::WindowHints{ .contextVersionMajor = 4,
+                        .contextVersionMinor = 6,
+                        .openglProfile = glfw::OpenGlProfile::Core }.apply();
 
-    /* Create a windowed mode window and its OpenGL context */
-    GLFWwindow* pWindow = glfwCreateWindow(g_windowSizeX, g_windowSizeY, "VoxelEngine", nullptr, nullptr);
-    if (!pWindow)
-    {
-        LOG_CRITICAL("glfwCreateWindow failed!");
-        glfwTerminate();
-        return -1;
-    }
+    glfw::Window pWindow{ g_windowSizeX, g_windowSizeY, "VoxelEngine" };
 
-    glfwSetWindowSizeCallback(pWindow, glfwWindowSizeCallback);
-    glfwSetKeyCallback(pWindow, glfwKeyCallback);
 
-    /* Make the window's context current */
-    glfwMakeContextCurrent(pWindow);
+    pWindow.framebufferSizeEvent.setCallback(glfwWindowSizeCallback);
+
+    pWindow.keyEvent.setCallback(glfwKeyCallback);
+
+
+
+    glfw::makeContextCurrent(pWindow);
 
     if (!gladLoadGL())
     {
         LOG_CRITICAL("Can't load GLAD!");
     }
     
+
     LOG_INFO("Renderer: {}", reinterpret_cast<const char*>(glGetString(GL_RENDERER)));
     LOG_INFO("OpenGL version: {}", reinterpret_cast<const char*>(glGetString(GL_VERSION)));
 
@@ -128,13 +123,9 @@ int main(const int argc, const char** argv)
         b2.set_scale({ sin(glfwGetTime()), cos(glfwGetTime()), 0.f });
 
 
-        /* Swap front and back buffers */
-        glfwSwapBuffers(pWindow);
-
-        /* Poll for and process events */
-        glfwPollEvents();
+        pWindow.swapBuffers();
+        glfw::pollEvents();
     }
 
-    glfwTerminate();
     return 0;
 }
