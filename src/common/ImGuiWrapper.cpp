@@ -24,7 +24,16 @@ void ImGuiWrapper::update_imgui()
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-    ImGui::ShowDemoWindow();
+	ImGui::Begin("Debug window");
+
+
+
+	ImGui::ColorEdit3("Clear color", ImGuiWrapper::clear_color);
+	ImGui::DragFloat3("Position", ImGuiWrapper::debug_position, 0.01f, -1.f, 1.f);
+	ImGui::DragFloat3("Scale", ImGuiWrapper::debug_scale, 0.01f, -1.f, 1.f);
+
+
+	ImGui::End();
 
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

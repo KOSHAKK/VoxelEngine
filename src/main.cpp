@@ -16,8 +16,8 @@
 #include <common/ImGuiWrapper.hpp>
 
 
-int g_windowSizeX = 640;
-int g_windowSizeY = 480;
+int g_windowSizeX = 640*2;
+int g_windowSizeY = 480*2-150;
 
 void glfwWindowSizeCallback(GLFWwindow* pWindow, int width, int height)
 {
@@ -40,7 +40,6 @@ int main(const int argc, const char** argv)
     spdlog::set_pattern("%^[%l]%$ %v");
 
     [[maybe_unused]] auto GLFW = glfw::init();
-    
 
     glfw::WindowHints{ .contextVersionMajor = 4,
                         .contextVersionMinor = 6,
@@ -69,7 +68,6 @@ int main(const int argc, const char** argv)
     LOG_INFO("OpenGL version: {}", reinterpret_cast<const char*>(glGetString(GL_VERSION)));
 
 
-    glClearColor(0, 0, 0, 1);
    // glEnable(GL_DEPTH_TEST);
 
     const char* src_vert = R"(
@@ -87,7 +85,7 @@ int main(const int argc, const char** argv)
            color = vertex_color;
         
            gl_Position = (pos_matrix * scale_matrix) * vec4(vertex_position, 1.0);
-        
+           
         }
     )";
 
@@ -107,29 +105,23 @@ int main(const int argc, const char** argv)
     ShaderProgram proj(src_vert, src_frag);
 
     Block b1({1.1f, 1.1f, 1.1f}, { 1.0f, 1.0f, 1.0f });
-    Block b2({1.1f, 1.1f, 1.1f}, { 1.0f, 1.0f, 1.0f });
 
 
 
     ImGuiWrapper::init_imgui(pWindow);
 
 
-
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(pWindow))
     {
         /* Render here */
+        glClearColor(ImGuiWrapper::clear_color[0], ImGuiWrapper::clear_color[1], ImGuiWrapper::clear_color[2], 1);
         glClear(GL_COLOR_BUFFER_BIT);
         
         b1.draw(proj);
-        b2.draw(proj);
 
-        b1.set_position({ cos(glfwGetTime())/2, sin(glfwGetTime()) / 2, 0.f });
-        b1.set_scale({ cos(glfwGetTime()), sin(glfwGetTime()), 0.f });
-
-
-        b2.set_position({ sin(glfwGetTime()) / 2, cos(glfwGetTime()) / 2, 0.f });
-        b2.set_scale({ sin(glfwGetTime()), cos(glfwGetTime()), 0.f });
+        b1.set_position({ ImGuiWrapper::debug_position[0], ImGuiWrapper::debug_position[1], ImGuiWrapper::debug_position[2] });
+        b1.set_scale({ ImGuiWrapper::debug_scale[0], ImGuiWrapper::debug_scale[1], ImGuiWrapper::debug_scale[2] });
 
 
         ImGuiWrapper::update_imgui();
