@@ -68,7 +68,7 @@ int main(const int argc, const char** argv)
     LOG_INFO("OpenGL version: {}", reinterpret_cast<const char*>(glGetString(GL_VERSION)));
 
 
-   // glEnable(GL_DEPTH_TEST);
+    glEnable(GL_DEPTH_TEST);
 
     const char* src_vert = R"(
         #version 460
@@ -77,14 +77,13 @@ int main(const int argc, const char** argv)
         layout(location = 1) in vec3 vertex_color;
         out vec3 color;
         
-        uniform mat4 scale_matrix;
-        uniform mat4 pos_matrix;
+        uniform mat4 model_matrix;
 
         void main()
         {
            color = vertex_color;
         
-           gl_Position = (pos_matrix * scale_matrix) * vec4(vertex_position, 1.0);
+           gl_Position = model_matrix * vec4(vertex_position, 1.0);
            
         }
     )";
@@ -104,7 +103,7 @@ int main(const int argc, const char** argv)
 
     ShaderProgram proj(src_vert, src_frag);
 
-    Block b1({1.1f, 1.1f, 1.1f}, { 1.0f, 1.0f, 1.0f });
+    Block b1({1.1f, 1.1f, 1.1f}, { 1.0f, 1.0f, 1.0f }, {0.f, 0.f, 0.f});
 
 
 
@@ -116,13 +115,12 @@ int main(const int argc, const char** argv)
     {
         /* Render here */
         glClearColor(ImGuiWrapper::clear_color[0], ImGuiWrapper::clear_color[1], ImGuiWrapper::clear_color[2], 1);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
         b1.draw(proj);
-
         b1.set_position({ ImGuiWrapper::debug_position[0], ImGuiWrapper::debug_position[1], ImGuiWrapper::debug_position[2] });
         b1.set_scale({ ImGuiWrapper::debug_scale[0], ImGuiWrapper::debug_scale[1], ImGuiWrapper::debug_scale[2] });
-
+		b1.set_rotation({ ImGuiWrapper::debug_rotation[0], ImGuiWrapper::debug_rotation[1], ImGuiWrapper::debug_rotation[2] });
 
         ImGuiWrapper::update_imgui();
 

@@ -29,8 +29,10 @@ void ImGuiWrapper::update_imgui()
 
 
 	ImGui::ColorEdit3("Clear color", ImGuiWrapper::clear_color);
+	ImGui::Separator();
 	ImGui::DragFloat3("Position", ImGuiWrapper::debug_position, 0.01f, -1.f, 1.f);
 	ImGui::DragFloat3("Scale", ImGuiWrapper::debug_scale, 0.01f, -1.f, 1.f);
+	ImGui::DragFloat3("Rotation", ImGuiWrapper::debug_rotation, 1.f, 0.f, 360.f);
 
 
 	ImGui::End();

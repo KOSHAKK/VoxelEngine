@@ -10,14 +10,14 @@
 class Block 
 {
 public:
-    Block(const glm::vec3& position, const glm::vec3& scale);
+    Block(const glm::vec3& position, const glm::vec3& scale, const glm::vec3& rotation);
     ~Block();
 
     void draw(const ShaderProgram& shader) const;
 
     void set_scale(const glm::vec3& scale);
     void set_position(const glm::vec3& position);
-    //void set_ratation(const glm::vec3& rotation);
+    void set_rotation(const glm::vec3& rotation);
 
 private:
     VertexArray m_vao;
@@ -28,5 +28,5 @@ private:
 
     glm::mat4 m_pos_matrix;
     glm::mat4 m_scale_matrix;
-    //glm::mat4 m_rotate_matrix;
+    glm::mat4 m_rotate_matrix;
 };

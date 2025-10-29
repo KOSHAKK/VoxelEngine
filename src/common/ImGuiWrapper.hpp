@@ -15,5 +15,6 @@ namespace ImGuiWrapper
 
 	inline float debug_position[3] = { 0.f };
 	inline float debug_scale[3] = { 1.f, 1.f, 1.f };
+	inline float debug_rotation[3] = { 0.f, 0.f, 0.f };
 
 }
