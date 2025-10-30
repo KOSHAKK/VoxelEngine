@@ -13,8 +13,8 @@ void ImGuiWrapper::init_imgui(glfw::Window& pWindow)
     ImGui_ImplOpenGL3_Init();
 
     ImGuiIO& io = ImGui::GetIO();
-    io.DisplaySize.x = std::get<0>(pWindow.getSize());
-    io.DisplaySize.y = std::get<1>(pWindow.getSize());
+    io.DisplaySize.x = static_cast<float>(std::get<0>(pWindow.getSize()));
+    io.DisplaySize.y = static_cast<float>(std::get<1>(pWindow.getSize()));
 }
 
 
@@ -30,10 +30,13 @@ void ImGuiWrapper::update_imgui()
 
 	ImGui::ColorEdit3("Clear color", ImGuiWrapper::clear_color);
 	ImGui::Separator();
-	ImGui::DragFloat3("Position", ImGuiWrapper::debug_position, 0.01f, -1.f, 1.f);
-	ImGui::DragFloat3("Scale", ImGuiWrapper::debug_scale, 0.01f, -1.f, 1.f);
-	ImGui::DragFloat3("Rotation", ImGuiWrapper::debug_rotation, 1.f, 0.f, 360.f);
-
+	ImGui::DragFloat3("Position", ImGuiWrapper::debug_block_position, 0.01f, -1.f, 1.f);
+	ImGui::DragFloat3("Scale", ImGuiWrapper::debug_block_scale, 0.01f, -1.f, 1.f);
+	ImGui::DragFloat3("Rotation", ImGuiWrapper::debug_block_rotation, 1.f, 0.f, 360.f);
+    ImGui::Separator();
+    ImGui::DragFloat3("Camera position", ImGuiWrapper::debug_camera_position, 0.1f, -10.f, 10.f);
+    ImGui::DragFloat3("Camera rotation", ImGuiWrapper::debug_camera_rotation, 1.f, 0.f, 360.f);
+	ImGui::Checkbox("Perspective mode", &ImGuiWrapper::perspective_mode);
 
 	ImGui::End();
 

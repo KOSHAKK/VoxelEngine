@@ -12,6 +12,7 @@
 
 #include "Object/Block.hpp"
 
+#include <Render/Camera.hpp>
 
 #include <common/ImGuiWrapper.hpp>
 
@@ -77,13 +78,13 @@ int main(const int argc, const char** argv)
         layout(location = 1) in vec3 vertex_color;
         out vec3 color;
         
-        uniform mat4 model_matrix;
+        uniform mat4 MVP;
 
         void main()
         {
            color = vertex_color;
         
-           gl_Position = model_matrix * vec4(vertex_position, 1.0);
+           gl_Position = MVP * vec4(vertex_position, 1.0);
            
         }
     )";
@@ -103,7 +104,10 @@ int main(const int argc, const char** argv)
 
     ShaderProgram proj(src_vert, src_frag);
 
-    Block b1({1.1f, 1.1f, 1.1f}, { 1.0f, 1.0f, 1.0f }, {0.f, 0.f, 0.f});
+    Camera camera;
+
+
+    Block b1;
 
 
 
@@ -117,10 +121,19 @@ int main(const int argc, const char** argv)
         glClearColor(ImGuiWrapper::clear_color[0], ImGuiWrapper::clear_color[1], ImGuiWrapper::clear_color[2], 1);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
-        b1.draw(proj);
-        b1.set_position({ ImGuiWrapper::debug_position[0], ImGuiWrapper::debug_position[1], ImGuiWrapper::debug_position[2] });
-        b1.set_scale({ ImGuiWrapper::debug_scale[0], ImGuiWrapper::debug_scale[1], ImGuiWrapper::debug_scale[2] });
-		b1.set_rotation({ ImGuiWrapper::debug_rotation[0], ImGuiWrapper::debug_rotation[1], ImGuiWrapper::debug_rotation[2] });
+        b1.draw(proj, camera);
+        b1.set_position({ ImGuiWrapper::debug_block_position[0], ImGuiWrapper::debug_block_position[1], ImGuiWrapper::debug_block_position[2] });
+        b1.set_scale({ ImGuiWrapper::debug_block_scale[0], ImGuiWrapper::debug_block_scale[1], ImGuiWrapper::debug_block_scale[2] });
+		b1.set_rotation({ ImGuiWrapper::debug_block_rotation[0], ImGuiWrapper::debug_block_rotation[1], ImGuiWrapper::debug_block_rotation[2] });
+
+
+		camera.set_position({ ImGuiWrapper::debug_camera_position[0], ImGuiWrapper::debug_camera_position[1], ImGuiWrapper::debug_camera_position[2] });
+		camera.set_rotation({ ImGuiWrapper::debug_camera_rotation[0], ImGuiWrapper::debug_camera_rotation[1], ImGuiWrapper::debug_camera_rotation[2] });
+        
+        if (ImGuiWrapper::perspective_mode)
+            camera.set_projection_mode(Camera::ProjectionMode::Perspective);
+        else
+            camera.set_projection_mode(Camera::ProjectionMode::Orthographic);
 
         ImGuiWrapper::update_imgui();
 

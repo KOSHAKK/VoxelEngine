@@ -72,18 +72,22 @@ Block::~Block()
 }
 
 
-void Block::draw(const ShaderProgram& shader) const
+void Block::draw(const ShaderProgram& shader, const Camera& camera) const
 {
     shader.bind();
 
 
 	glm::mat4 model_matrix = m_pos_matrix * m_rotate_matrix * m_scale_matrix;
-    shader.set_matrix4("model_matrix", model_matrix);
+    glm::mat4 projection_view_matrix = camera.get_projection_matrix() * camera.get_view_matrix();
 
+	glm::mat4 MVP = projection_view_matrix * model_matrix;
 
+    shader.set_matrix4("MVP", MVP);
+
+    
 
     m_vao.bind();
-    glDrawElements(GL_TRIANGLES, m_ebo->get_count(), GL_UNSIGNED_INT, nullptr);
+    glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(m_ebo->get_count()), GL_UNSIGNED_INT, nullptr);
 }
 
 void Block::set_scale(const glm::vec3& scale)

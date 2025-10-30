@@ -26,6 +26,9 @@ add_executable(${PROJECT_NAME}
 	
 	src/common/ImGuiWrapper.cpp
 	src/common/ImGuiWrapper.hpp
+	
+	src/Render/Camera.cpp
+	src/Render/Camera.hpp
 
 )
 
