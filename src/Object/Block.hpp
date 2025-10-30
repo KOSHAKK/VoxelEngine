@@ -13,7 +13,7 @@
 class Block 
 {
 public:
-    Block(const glm::vec3& position = {0.f, 0.f, 0.f}, const glm::vec3& scale = { 0.f, 0.f, 0.f }, const glm::vec3& rotation = { 0.f, 0.f, 0.f });
+    Block(const glm::vec3& position = {0.f, 0.f, 0.f}, const glm::vec3& scale = { 1.f, 1.f, 1.f }, const glm::vec3& rotation = { 0.f, 0.f, 0.f });
     ~Block();
 
     void draw(const ShaderProgram& shader, const Camera& camera) const;

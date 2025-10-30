@@ -108,6 +108,8 @@ int main(const int argc, const char** argv)
 
 
     Block b1;
+    Block b2({ -2.0f, -1.0f, -4.0f });
+    Block b3({ 2.0f, 1.0f, -1.0f });
 
 
 
@@ -122,6 +124,9 @@ int main(const int argc, const char** argv)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
         b1.draw(proj, camera);
+        b2.draw(proj, camera);
+        b3.draw(proj, camera);
+
         b1.set_position({ ImGuiWrapper::debug_block_position[0], ImGuiWrapper::debug_block_position[1], ImGuiWrapper::debug_block_position[2] });
         b1.set_scale({ ImGuiWrapper::debug_block_scale[0], ImGuiWrapper::debug_block_scale[1], ImGuiWrapper::debug_block_scale[2] });
 		b1.set_rotation({ ImGuiWrapper::debug_block_rotation[0], ImGuiWrapper::debug_block_rotation[1], ImGuiWrapper::debug_block_rotation[2] });

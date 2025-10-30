@@ -87,6 +87,7 @@ void Block::draw(const ShaderProgram& shader, const Camera& camera) const
     
 
     m_vao.bind();
+    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(m_ebo->get_count()), GL_UNSIGNED_INT, nullptr);
 }
 
