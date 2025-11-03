@@ -3,7 +3,7 @@
 #include <glad/glad.h>
 #include <common/Log.hpp>
 
-
+#include <common/ImGuiWrapper.hpp>
 
 Block::Block(const glm::vec3& position, const glm::vec3& scale, const glm::vec3& rotation)
 {
@@ -87,7 +87,12 @@ void Block::draw(const ShaderProgram& shader, const Camera& camera) const
     
 
     m_vao.bind();
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+    if (!ImGuiWrapper::draw_line)
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	else
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
     glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(m_ebo->get_count()), GL_UNSIGNED_INT, nullptr);
 }
 

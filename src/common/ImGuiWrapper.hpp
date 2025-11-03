@@ -18,6 +18,7 @@ namespace ImGuiWrapper
 	inline float debug_block_rotation[3] = { 0.f };
 
 	inline bool perspective_mode = true;
+	inline bool draw_line = false;
 	inline float debug_camera_position[3] = { 0.f, 0.f, 4.f };
 	inline float debug_camera_rotation[3] = { 0.f };
 }

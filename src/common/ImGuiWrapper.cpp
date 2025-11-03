@@ -29,6 +29,7 @@ void ImGuiWrapper::update_imgui()
 
 
 	ImGui::ColorEdit3("Clear color", ImGuiWrapper::clear_color);
+    ImGui::Checkbox("Draw line", &ImGuiWrapper::draw_line);
 	ImGui::Separator();
 	ImGui::DragFloat3("Position", ImGuiWrapper::debug_block_position, 0.1f, -10.f, 10.f);
 	ImGui::DragFloat3("Scale", ImGuiWrapper::debug_block_scale, 0.01f, -1.f, 1.f);

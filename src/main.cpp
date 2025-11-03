@@ -17,6 +17,21 @@
 #include <common/ImGuiWrapper.hpp>
 
 
+
+#include <Jolt/Jolt.h>
+#include <Jolt/RegisterTypes.h>
+#include <Jolt/Core/Factory.h>
+#include <Jolt/Core/TempAllocator.h>
+#include <Jolt/Core/JobSystemThreadPool.h>
+#include <Jolt/Physics/PhysicsSettings.h>
+#include <Jolt/Physics/PhysicsSystem.h>
+#include <Jolt/Physics/Collision/Shape/BoxShape.h>
+#include <Jolt/Physics/Collision/Shape/SphereShape.h>
+#include <Jolt/Physics/Body/BodyCreationSettings.h>
+#include <Jolt/Physics/Body/BodyActivationListener.h>
+
+using namespace JPH;
+
 int g_windowSizeX = 640*2;
 int g_windowSizeY = 480*2-150;
 
@@ -36,8 +51,20 @@ void glfwKeyCallback(glfw::Window& pWindow, glfw::KeyCode keyCode_, int scanCode
     }
 }
 
+
 int main(const int argc, const char** argv)
 {
+
+    RegisterDefaultAllocator();
+    Factory::sInstance = new Factory();
+    RegisterTypes();
+
+    std::cout << "Jolt Physics initialized successfully!" << std::endl;
+
+    UnregisterTypes();
+    delete Factory::sInstance;
+
+
     spdlog::set_pattern("%^[%l]%$ %v");
 
     [[maybe_unused]] auto GLFW = glfw::init();
@@ -79,13 +106,14 @@ int main(const int argc, const char** argv)
         out vec3 color;
         
         uniform mat4 MVP;
+        uniform float time;
 
         void main()
         {
            color = vertex_color;
         
            gl_Position = MVP * vec4(vertex_position, 1.0);
-           
+
         }
     )";
 
@@ -94,10 +122,10 @@ int main(const int argc, const char** argv)
 
         in vec3 color;
         out vec4 frag_color;
-        
+        uniform float time;
         void main()
         {
-           frag_color = vec4(color, 1.0);
+            frag_color = vec4(color, 1.0);
         }
     )";
 
@@ -123,6 +151,10 @@ int main(const int argc, const char** argv)
         glClearColor(ImGuiWrapper::clear_color[0], ImGuiWrapper::clear_color[1], ImGuiWrapper::clear_color[2], 1);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
+        proj.bind();
+		proj.set_float("time", static_cast<float>(glfw::getTime()));
+
+
         b1.draw(proj, camera);
         b2.draw(proj, camera);
         b3.draw(proj, camera);

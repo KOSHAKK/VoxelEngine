@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.13 FATAL_ERROR)
 set(PROJECT_NAME VoxelEngine)
 project(${PROJECT_NAME})
 
+
 set(CMAKE_CXX_STANDARD 20)
 
 add_executable(${PROJECT_NAME} 
@@ -40,9 +41,6 @@ set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
 
-
-# add_subdirectory(external/glfw)
-# target_link_libraries(${PROJECT_NAME} PRIVATE glfw)
 
 add_subdirectory(external/glad)
 target_link_libraries(${PROJECT_NAME} PRIVATE glad)
@@ -85,6 +83,30 @@ target_include_directories(ImGui PUBLIC external/imgui)
 target_link_libraries(ImGui PRIVATE glad glfw)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE ImGui)
+
+
+#jolt
+
+set(JOLT_DIR ${CMAKE_SOURCE_DIR}/external/JoltPhysics)
+set(JOLT_INCLUDE_DIR ${JOLT_DIR})
+set(JOLT_LIB_DIR ${JOLT_DIR}/Build/VS2022_CL)
+
+target_include_directories(${PROJECT_NAME} PRIVATE
+   ${JOLT_INCLUDE_DIR}
+)
+
+target_link_libraries(${PROJECT_NAME} PRIVATE
+    debug     ${JOLT_LIB_DIR}/Debug/Jolt.lib
+    optimized ${JOLT_LIB_DIR}/Release/Jolt.lib
+)
+
+target_compile_definitions(${PROJECT_NAME} PRIVATE
+    JPH_DEBUG_RENDERER
+	JPH_FLOATING_POINT_EXCEPTIONS_ENABLED
+	JPH_PROFILE_ENABLED
+	JPH_OBJECT_STREAM
+)
+
 
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${PROJECT_NAME})
 set_target_properties(${PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/)
