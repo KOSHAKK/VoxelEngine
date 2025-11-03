@@ -17,20 +17,7 @@
 #include <common/ImGuiWrapper.hpp>
 
 
-
-#include <Jolt/Jolt.h>
-#include <Jolt/RegisterTypes.h>
-#include <Jolt/Core/Factory.h>
-#include <Jolt/Core/TempAllocator.h>
-#include <Jolt/Core/JobSystemThreadPool.h>
-#include <Jolt/Physics/PhysicsSettings.h>
-#include <Jolt/Physics/PhysicsSystem.h>
-#include <Jolt/Physics/Collision/Shape/BoxShape.h>
-#include <Jolt/Physics/Collision/Shape/SphereShape.h>
-#include <Jolt/Physics/Body/BodyCreationSettings.h>
-#include <Jolt/Physics/Body/BodyActivationListener.h>
-
-using namespace JPH;
+#include <Physics/PhysicsEngine.hpp>
 
 int g_windowSizeX = 640*2;
 int g_windowSizeY = 480*2-150;
@@ -42,27 +29,23 @@ void glfwWindowSizeCallback(GLFWwindow* pWindow, int width, int height)
     glViewport(0, 0, g_windowSizeX, g_windowSizeY);
 }
 
+bool jump = false;
 void glfwKeyCallback(glfw::Window& pWindow, glfw::KeyCode keyCode_, int scanCode_, glfw::KeyState state_, glfw::ModifierKeyBit modifiers_)
 {
     if (keyCode_ == glfw::KeyCode::Escape && state_ == glfw::KeyState::Press)
     {
-        
         glfwSetWindowShouldClose(pWindow, GL_TRUE);
     }
+    if (keyCode_ == glfw::KeyCode::W && state_ == glfw::KeyState::Press)
+    {
+        jump = true;
+	}
 }
 
 
 int main(const int argc, const char** argv)
 {
 
-    RegisterDefaultAllocator();
-    Factory::sInstance = new Factory();
-    RegisterTypes();
-
-    std::cout << "Jolt Physics initialized successfully!" << std::endl;
-
-    UnregisterTypes();
-    delete Factory::sInstance;
 
 
     spdlog::set_pattern("%^[%l]%$ %v");
@@ -136,7 +119,7 @@ int main(const int argc, const char** argv)
 
 
     Block b1;
-    Block b2({ -2.0f, -1.0f, -4.0f });
+    Block b2;
     Block b3({ 2.0f, 1.0f, -1.0f });
 
 
@@ -144,9 +127,41 @@ int main(const int argc, const char** argv)
     ImGuiWrapper::init_imgui(pWindow);
 
 
+    const float cDeltaTime = 1.0f / 60.0f;
+
+    PhysicsEngine::init();
+    JPH::uint step = 0;
+
+    JPH::TempAllocatorImpl  temp_allocator{ 10 * 1024 * 1024 };
+
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(pWindow))
     {
+		JPH::RVec3 position(0.f, 0.f, 0.f);
+
+        if (PhysicsEngine::body_interface->IsActive(PhysicsEngine::cube_id)) {
+            ++step;
+
+            position = PhysicsEngine::body_interface->GetCenterOfMassPosition(PhysicsEngine::cube_id);
+            JPH::Vec3 velocity = PhysicsEngine::body_interface->GetLinearVelocity(PhysicsEngine::cube_id);
+            std::cout << "Step " << step << ": Position = (" << position.GetX() << ", " << position.GetY() << ", " << position.GetZ() << "), Velocity = (" << velocity.GetX() << ", " << velocity.GetY() << ", " << velocity.GetZ() << ")" << std::endl;
+
+
+            PhysicsEngine::physics_system.Update(1.f / 60.f, 1, &temp_allocator, PhysicsEngine::job_system);
+        }
+
+		b3.set_position({ position.GetX(), position.GetY(), position.GetZ() });
+
+        if (jump)
+        {
+            JPH::Vec3 vel = PhysicsEngine::body_interface->GetLinearVelocity(PhysicsEngine::cube_id);
+            vel.SetY(5.0f);
+            PhysicsEngine::body_interface->SetLinearVelocity(PhysicsEngine::cube_id, vel);
+            jump = false;
+		}
+        
+
+
         /* Render here */
         glClearColor(ImGuiWrapper::clear_color[0], ImGuiWrapper::clear_color[1], ImGuiWrapper::clear_color[2], 1);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -156,7 +171,7 @@ int main(const int argc, const char** argv)
 
 
         b1.draw(proj, camera);
-        b2.draw(proj, camera);
+        //b2.draw(proj, camera);
         b3.draw(proj, camera);
 
         b1.set_position({ ImGuiWrapper::debug_block_position[0], ImGuiWrapper::debug_block_position[1], ImGuiWrapper::debug_block_position[2] });

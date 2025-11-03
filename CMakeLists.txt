@@ -30,6 +30,9 @@ add_executable(${PROJECT_NAME}
 	
 	src/Render/Camera.cpp
 	src/Render/Camera.hpp
+	
+	src/Physics/PhysicsEngine.cpp
+	src/Physics/PhysicsEngine.hpp
 
 )
 
