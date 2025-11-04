@@ -219,7 +219,7 @@ void PhysicsEngine::init()
 	body_interface->AddBody(floor_id, JPH::EActivation::DontActivate);
 
 	// ---- создаём куб ----
-	JPH::BoxShapeSettings cube_shape_settings(JPH::Vec3(0.5f, 0.5f, 0.5f));
+	JPH::BoxShapeSettings cube_shape_settings(JPH::Vec3(1.0f, 1.0f, 1.0f));
 	cube_shape_settings.SetEmbedded();
 	JPH::ShapeRefC cube_shape = cube_shape_settings.Create().Get();
 
@@ -232,7 +232,7 @@ void PhysicsEngine::init()
 	);
 
 	cube_id = body_interface->CreateAndAddBody(cube_settings, JPH::EActivation::Activate);
-	body_interface->SetLinearVelocity(cube_id, JPH::Vec3(0.0f, -5.0f, 0.0f));
+	//body_interface->SetLinearVelocity(cube_id, JPH::Vec3(0.0f, -5.0f, 0.0f));
 
 	physics_system.OptimizeBroadPhase();
 }

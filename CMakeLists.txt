@@ -8,7 +8,6 @@ set(CMAKE_CXX_STANDARD 20)
 
 add_executable(${PROJECT_NAME} 
 	src/main.cpp
-	src/common/Log.hpp
 	
 	src/OpenGL/ShaderProgram.cpp
 	src/OpenGL/ShaderProgram.hpp
@@ -28,11 +27,21 @@ add_executable(${PROJECT_NAME}
 	src/common/ImGuiWrapper.cpp
 	src/common/ImGuiWrapper.hpp
 	
+	src/common/Log.hpp
+	
+	src/common/Keys.hpp
+	
+	src/common/Input.cpp
+	src/common/Input.hpp
+	
 	src/Render/Camera.cpp
 	src/Render/Camera.hpp
 	
 	src/Physics/PhysicsEngine.cpp
 	src/Physics/PhysicsEngine.hpp
+
+	src/Resources/ResourceManager.cpp
+	src/Resources/ResourceManager.hpp
 
 )
 
@@ -113,3 +122,7 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
 
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${PROJECT_NAME})
 set_target_properties(${PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/)
+
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+					COMMAND ${CMAKE_COMMAND} -E copy_directory
+					${CMAKE_SOURCE_DIR}/res $<TARGET_FILE_DIR:${PROJECT_NAME}>/res)

@@ -15,6 +15,10 @@ void ImGuiWrapper::init_imgui(glfw::Window& pWindow)
     ImGuiIO& io = ImGui::GetIO();
     io.DisplaySize.x = static_cast<float>(std::get<0>(pWindow.getSize()));
     io.DisplaySize.y = static_cast<float>(std::get<1>(pWindow.getSize()));
+
+    //io.Fonts->AddFontFromFileTTF("res/Fonts/ARCADECLASSIC.TTF", 24.0f/3);
+    //io.Fonts->Build();
+
 }
 
 

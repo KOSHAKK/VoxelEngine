@@ -1,0 +1,30 @@
+#pragma once
+
+#include <unordered_map>
+#include <string>
+#include <memory>
+
+#include <OpenGL/ShaderProgram.hpp>
+
+using shaderMap = std::unordered_map<std::string, ShaderProgram>;
+
+class ResourceManager 
+{
+public:
+	ResourceManager() = delete;
+
+	static void init(const std::string& executable_path);
+	static std::string get_file_text(const std::string& file_path);
+
+	static ShaderProgram& load_shader_program(const std::string& name,
+											  const std::string& vertex_shader_path,
+											  const std::string& fragment_shader_path);
+
+
+	static ShaderProgram& get_shader_program(const std::string& name);
+
+
+private:
+	static inline std::string m_executable_path;
+	static inline shaderMap m_shader_programs;
+};

@@ -16,8 +16,11 @@
 
 #include <common/ImGuiWrapper.hpp>
 
+#include <common/Input.hpp>
 
 #include <Physics/PhysicsEngine.hpp>
+
+#include <Resources/ResourceManager.hpp>
 
 int g_windowSizeX = 640*2;
 int g_windowSizeY = 480*2-150;
@@ -29,24 +32,21 @@ void glfwWindowSizeCallback(GLFWwindow* pWindow, int width, int height)
     glViewport(0, 0, g_windowSizeX, g_windowSizeY);
 }
 
-bool jump = false;
 void glfwKeyCallback(glfw::Window& pWindow, glfw::KeyCode keyCode_, int scanCode_, glfw::KeyState state_, glfw::ModifierKeyBit modifiers_)
 {
-    if (keyCode_ == glfw::KeyCode::Escape && state_ == glfw::KeyState::Press)
-    {
-        glfwSetWindowShouldClose(pWindow, GL_TRUE);
+    if (state_ == glfw::KeyState::Press) {
+        Input::PressKey(static_cast<KeyCode>(static_cast<int>(keyCode_)));
     }
-    if (keyCode_ == glfw::KeyCode::W && state_ == glfw::KeyState::Press)
-    {
-        jump = true;
-	}
+    else if (state_ == glfw::KeyState::Release) {
+        Input::ReleaseKey(static_cast<KeyCode>(static_cast<int>(keyCode_)));
+    }
 }
 
 
-int main(const int argc, const char** argv)
+int main(const int argc, const char** argv) try
 {
-
-
+    ResourceManager::init(argv[0]);
+    PhysicsEngine::init();
 
     spdlog::set_pattern("%^[%l]%$ %v");
 
@@ -112,14 +112,14 @@ int main(const int argc, const char** argv)
         }
     )";
 
+    ShaderProgram& proj = ResourceManager::load_shader_program("basic_shader", "res/Shaders/basic.vert", "res/Shaders/basic.frag");
 
-    ShaderProgram proj(src_vert, src_frag);
 
     Camera camera;
 
+    Block floor({ 0.f,0.f,0.f }, { 100.f, 1.f, 100.f });
 
     Block b1;
-    Block b2;
     Block b3({ 2.0f, 1.0f, -1.0f });
 
 
@@ -127,37 +127,50 @@ int main(const int argc, const char** argv)
     ImGuiWrapper::init_imgui(pWindow);
 
 
-    const float cDeltaTime = 1.0f / 60.0f;
 
-    PhysicsEngine::init();
     JPH::uint step = 0;
 
     JPH::TempAllocatorImpl  temp_allocator{ 10 * 1024 * 1024 };
 
+	JPH::RVec3 position(0.f, 0.f, 0.f);
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(pWindow))
     {
-		JPH::RVec3 position(0.f, 0.f, 0.f);
 
         if (PhysicsEngine::body_interface->IsActive(PhysicsEngine::cube_id)) {
             ++step;
 
-            position = PhysicsEngine::body_interface->GetCenterOfMassPosition(PhysicsEngine::cube_id);
+            position = PhysicsEngine::body_interface->GetPosition(PhysicsEngine::cube_id);
             JPH::Vec3 velocity = PhysicsEngine::body_interface->GetLinearVelocity(PhysicsEngine::cube_id);
-            std::cout << "Step " << step << ": Position = (" << position.GetX() << ", " << position.GetY() << ", " << position.GetZ() << "), Velocity = (" << velocity.GetX() << ", " << velocity.GetY() << ", " << velocity.GetZ() << ")" << std::endl;
+            //std::cout << "Step " << step << ": Position = (" << position.GetX() << ", " << position.GetY() << ", " << position.GetZ() << "), Velocity = (" << velocity.GetX() << ", " << velocity.GetY() << ", " << velocity.GetZ() << ")" << std::endl;
 
 
-            PhysicsEngine::physics_system.Update(1.f / 60.f, 1, &temp_allocator, PhysicsEngine::job_system);
+            PhysicsEngine::physics_system.Update(1.f / 120.f, 1, &temp_allocator, PhysicsEngine::job_system);
         }
 
 		b3.set_position({ position.GetX(), position.GetY(), position.GetZ() });
 
-        if (jump)
+		std::cout << position.GetX() << " " << position.GetY() << " " << position.GetZ() << std::endl;
+
+        if (Input::IsKeyPressed(KeyCode::KEY_SPACE) && !PhysicsEngine::body_interface->IsActive(PhysicsEngine::cube_id))
         {
             JPH::Vec3 vel = PhysicsEngine::body_interface->GetLinearVelocity(PhysicsEngine::cube_id);
+
             vel.SetY(5.0f);
+
+            if (rand() % 2 == 0)
+                vel.SetX(2.0f);
+            else
+				vel.SetX(-2.0f);
+
+            if (rand() % 2 == 0)
+                vel.SetZ(2.0f);
+            else
+                vel.SetZ(-2.0f);
+
+
+
             PhysicsEngine::body_interface->SetLinearVelocity(PhysicsEngine::cube_id, vel);
-            jump = false;
 		}
         
 
@@ -171,7 +184,7 @@ int main(const int argc, const char** argv)
 
 
         b1.draw(proj, camera);
-        //b2.draw(proj, camera);
+        floor.draw(proj, camera);
         b3.draw(proj, camera);
 
         b1.set_position({ ImGuiWrapper::debug_block_position[0], ImGuiWrapper::debug_block_position[1], ImGuiWrapper::debug_block_position[2] });
@@ -197,4 +210,9 @@ int main(const int argc, const char** argv)
     }
     ImGuiWrapper::destroy_imgui_context();
     return 0;
+}
+catch (const std::exception& e)
+{
+    LOG_CRITICAL("Unhandled exception: {}", e.what());
+    return EXIT_FAILURE;
 }
