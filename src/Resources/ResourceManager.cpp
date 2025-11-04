@@ -50,3 +50,8 @@ ShaderProgram& ResourceManager::get_shader_program(const std::string& name)
 	LOG_ERROR("Can't find shader program with name: {}", name);
 	throw std::runtime_error("Shader program not found: " + name);
 }
+
+ImFont& ResourceManager::load_font(const std::string& name, const std::string& font_path, unsigned int size)
+{
+	return *m_font.emplace(name, ImGui::GetIO().Fonts->AddFontFromFileTTF((m_executable_path + "/" + font_path).c_str(), size)).first->second;
+}

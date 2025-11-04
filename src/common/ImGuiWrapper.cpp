@@ -4,6 +4,7 @@
 #include <imgui/backends/imgui_impl_opengl3.h>
 #include <imgui/backends/imgui_impl_glfw.h>
 
+#include <Resources/ResourceManager.hpp>
 
 void ImGuiWrapper::init_imgui(glfw::Window& pWindow)
 {
@@ -16,9 +17,10 @@ void ImGuiWrapper::init_imgui(glfw::Window& pWindow)
     io.DisplaySize.x = static_cast<float>(std::get<0>(pWindow.getSize()));
     io.DisplaySize.y = static_cast<float>(std::get<1>(pWindow.getSize()));
 
-    //io.Fonts->AddFontFromFileTTF("res/Fonts/ARCADECLASSIC.TTF", 24.0f/3);
-    //io.Fonts->Build();
 
+	ResourceManager::load_font("ARCADECLASSIC", "res/Fonts/ProggyClean.ttf", 16.f);
+
+    io.Fonts->Build();
 }
 
 
@@ -30,6 +32,9 @@ void ImGuiWrapper::update_imgui()
 
 	ImGui::Begin("Debug window");
 
+    float fps = ImGui::GetIO().Framerate;
+
+    ImGui::Text("FPS: %.1f", fps);
 
 
 	ImGui::ColorEdit3("Clear color", ImGuiWrapper::clear_color);

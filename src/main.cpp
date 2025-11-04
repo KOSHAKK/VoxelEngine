@@ -136,6 +136,33 @@ int main(const int argc, const char** argv) try
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(pWindow))
     {
+        static double lastTime = glfwGetTime();
+        double currentTime = glfwGetTime();
+        float deltaTime = float(currentTime - lastTime);
+        lastTime = currentTime;
+
+        
+        if (Input::IsKeyPressed(KeyCode::KEY_W)) {
+			ImGuiWrapper::debug_camera_position[2] -= 5.0f * deltaTime;
+        }
+		else if (Input::IsKeyPressed(KeyCode::KEY_S)) {
+            ImGuiWrapper::debug_camera_position[2] += 5.0f * deltaTime;
+		}
+
+        if (Input::IsKeyPressed(KeyCode::KEY_A)) {
+            ImGuiWrapper::debug_camera_position[0] -= 5.0f * deltaTime;
+        }
+        else if (Input::IsKeyPressed(KeyCode::KEY_D)) {
+            ImGuiWrapper::debug_camera_position[0] += 5.0f * deltaTime;
+        }
+
+        if (Input::IsKeyPressed(KeyCode::KEY_LEFT_SHIFT)) {
+            ImGuiWrapper::debug_camera_position[1] += 5.0f * deltaTime;
+        }
+        else if (Input::IsKeyPressed(KeyCode::KEY_LEFT_CONTROL)) {
+            ImGuiWrapper::debug_camera_position[1] -= 5.0f * deltaTime;
+        }
+
 
         if (PhysicsEngine::body_interface->IsActive(PhysicsEngine::cube_id)) {
             ++step;
@@ -145,12 +172,11 @@ int main(const int argc, const char** argv) try
             //std::cout << "Step " << step << ": Position = (" << position.GetX() << ", " << position.GetY() << ", " << position.GetZ() << "), Velocity = (" << velocity.GetX() << ", " << velocity.GetY() << ", " << velocity.GetZ() << ")" << std::endl;
 
 
-            PhysicsEngine::physics_system.Update(1.f / 120.f, 1, &temp_allocator, PhysicsEngine::job_system);
+            PhysicsEngine::physics_system.Update(deltaTime, 1, &temp_allocator, PhysicsEngine::job_system);
         }
 
 		b3.set_position({ position.GetX(), position.GetY(), position.GetZ() });
 
-		std::cout << position.GetX() << " " << position.GetY() << " " << position.GetZ() << std::endl;
 
         if (Input::IsKeyPressed(KeyCode::KEY_SPACE) && !PhysicsEngine::body_interface->IsActive(PhysicsEngine::cube_id))
         {
