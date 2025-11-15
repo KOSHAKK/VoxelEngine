@@ -2,7 +2,7 @@
 
 #include <iostream>
 #include <common/Log.hpp>
-#include <varargs.h>
+#include <stdarg.h>
 
 
 using namespace JPH::literals;
@@ -22,7 +22,6 @@ namespace {
 	}
 
 #ifdef JPH_ENABLE_ASSERTS
-
 	// Callback for asserts, connect this to your own assert handler if you have one
 	static bool AssertFailedImpl(const char* inExpression, const char* inMessage, const char* inFile, JPH::uint inLine)
 	{
@@ -33,6 +32,7 @@ namespace {
 		return true;
 	};
 #endif // JPH_ENABLE_ASSERTS
+
 
 
 	namespace Layers
@@ -173,8 +173,14 @@ void PhysicsEngine::init()
 {
 	JPH::RegisterDefaultAllocator();
 	JPH::Trace = TraceImpl;
+
+#ifdef NDEBUG
+	JPH_IF_ENABLE_ASSERTS(AssertFailed = AssertFailedImpl;);
+#else
 	JPH::JPH_IF_ENABLE_ASSERTS(AssertFailed = AssertFailedImpl;)
-		JPH::Factory::sInstance = new JPH::Factory();
+#endif
+
+	JPH::Factory::sInstance = new JPH::Factory();
 	JPH::RegisterTypes();
 
 	const JPH::uint cMaxBodies = 1024;
@@ -219,7 +225,7 @@ void PhysicsEngine::init()
 	body_interface->AddBody(floor_id, JPH::EActivation::DontActivate);
 
 	// ---- создаём куб ----
-	JPH::BoxShapeSettings cube_shape_settings(JPH::Vec3(1.0f, 1.0f, 1.0f));
+	JPH::BoxShapeSettings cube_shape_settings(JPH::Vec3(2.0f, 2.0f, 2.0f));
 	cube_shape_settings.SetEmbedded();
 	JPH::ShapeRefC cube_shape = cube_shape_settings.Create().Get();
 

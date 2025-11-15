@@ -37,11 +37,16 @@ add_executable(${PROJECT_NAME}
 	src/Render/Camera.cpp
 	src/Render/Camera.hpp
 	
+	src/Render/Texture2D.cpp
+	src/Render/Texture2D.hpp
+	
 	src/Physics/PhysicsEngine.cpp
 	src/Physics/PhysicsEngine.hpp
 
 	src/Resources/ResourceManager.cpp
 	src/Resources/ResourceManager.hpp
+	
+	src/Resources/stb_image.hpp
 
 )
 
@@ -66,6 +71,12 @@ include_directories(external/glm)
 set(GLFWPP_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 add_subdirectory("external/glfwpp")
 target_link_libraries(${PROJECT_NAME} PRIVATE GLFWPP)
+
+if (MSVC)
+    target_compile_options(GLFWPP INTERFACE /W0)
+else()
+    target_compile_options(GLFWPP INTERFACE -w)
+endif()
 
 
 set(IMGUI_INCLUDES

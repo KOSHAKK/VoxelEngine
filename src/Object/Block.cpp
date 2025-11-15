@@ -5,41 +5,97 @@
 
 #include <common/ImGuiWrapper.hpp>
 
+#include <Resources/ResourceManager.hpp>
+
 Block::Block(const glm::vec3& position, const glm::vec3& scale, const glm::vec3& rotation)
 {
     GLfloat point[] = {
-        -0.5f, -0.5f, -0.5f,
-         0.5f, -0.5f, -0.5f,
-         0.5f,  0.5f, -0.5f,
-        -0.5f,  0.5f, -0.5f,
-        
-        -0.5f, -0.5f,  0.5f,
-         0.5f, -0.5f,  0.5f,
-         0.5f,  0.5f,  0.5f,
-        -0.5f,  0.5f,  0.5f,
+    -1.0f, -1.f, -1.f,
+    -1.0f,  1.f, -1.f,
+    -1.0f,  1.f,  1.f,
+    -1.0f, -1.f,  1.f,
+    
+    // BACK            
+     1.0f, -1.f, -1.f,
+     1.0f,  1.f, -1.f,
+     1.0f,  1.f,  1.f,
+     1.0f, -1.f,  1.f,
+    
+     // RIGHT
+     -1.0f,  1.f, -1.f,
+      1.0f,  1.f, -1.f,
+      1.0f,  1.f,  1.f,
+     -1.0f,  1.f,  1.f,
+    
+     // LEFT
+     -1.0f, -1.f, -1.f,
+      1.0f, -1.f, -1.f,
+      1.0f, -1.f,  1.f,
+     -1.0f, -1.f,  1.f,
+    
+     // TOP
+     -1.0f, -1.f,  1.f,
+     -1.0f,  1.f,  1.f,
+      1.0f,  1.f,  1.f,
+      1.0f, -1.f,  1.f,
+    
+      // BOTTOM
+      -1.0f, -1.f, -1.f,
+      -1.0f,  1.f, -1.f,
+       1.0f,  1.f, -1.f,
+       1.0f, -1.f, -1.f,
     };
 
+    GLfloat texture_coords[] = {
+            0.f, 0.f,
+            1.f, 0.f,
+            1.f, 1.f,
+            0.f, 1.f,
+            
+            
+            1.f, 0.f,
+            0.f, 0.f,
+            0.f, 1.f,
+            1.f, 1.f,
+            
+            
+            0.f, 0.f,
+            1.f, 0.f,
+            1.f, 1.f,
+            0.f, 1.f,
+            
+            
+            1.f, 0.f,
+            0.f, 0.f,
+            0.f, 1.f,
+            1.f, 1.f,
+            
+            
+            0.f, 0.f,
+            1.f, 0.f,
+            1.f, 1.f,
+            0.f, 1.f,
+            
+            
+            0.f, 1.f,
+            1.f, 1.f,
+            1.f, 0.f,
+            0.f, 0.f,
 
-
-    GLfloat colors[] = {
-        1.0f, 0.0f, 0.0f,
-        0.0f, 1.0f, 0.0f,
-        0.0f, 0.0f, 1.0f,
-        1.0f, 1.0f, 0.0f,
-
-        1.0f, 0.0f, 1.0f,
-        0.0f, 1.0f, 1.0f,
-        1.0f, 1.0f, 1.0f,
-        0.5f, 0.2f, 0.8f,
+        //           
+        //1.0f, 0.0f,
+        //0.0f, 1.0f,
+        //1.0f, 1.0f,
+        //0.5f, 0.2f,
     };
 
     GLuint indices[] = {
-        0, 1, 2, 2, 3, 0,
-        4, 5, 6, 6, 7, 4,
-        4, 0, 3, 3, 7, 4,
-        1, 5, 6, 6, 2, 1,
-        4, 5, 1, 1, 0, 4,
-        3, 2, 6, 6, 7, 3
+        0,   1,  2,  2,  3,  0, // front
+        4,   5,  6,  6,  7,  4, // back
+        8,   9, 10, 10, 11,  8, // right
+        12, 13, 14, 14, 15, 12, // left
+        16, 17, 18, 18, 19, 16, // top
+        20, 21, 22, 22, 23, 20  // bottom
     };
 
     BufferLayout buffer_layout_1vec3
@@ -47,15 +103,19 @@ Block::Block(const glm::vec3& position, const glm::vec3& scale, const glm::vec3&
         ShaderDataType::Float3,
     };
 
+    BufferLayout buffer_layout_1vec2
+    {
+        ShaderDataType::Float2,
+    };
 
     m_vbo_point = new VertexBuffer(point, sizeof(point), buffer_layout_1vec3);
-    m_vbo_color = new VertexBuffer(colors, sizeof(colors), buffer_layout_1vec3);
+    m_vbo_texture = new VertexBuffer(texture_coords, sizeof(texture_coords), buffer_layout_1vec2);
 
 
     m_ebo = new IndexBuffer(indices, sizeof(indices));
 
     m_vao.add_vertex_buffer(*m_vbo_point);
-    m_vao.add_vertex_buffer(*m_vbo_color);
+    m_vao.add_vertex_buffer(*m_vbo_texture);
     m_vao.set_index_buffer(*m_ebo);
 
 
@@ -67,14 +127,14 @@ Block::Block(const glm::vec3& position, const glm::vec3& scale, const glm::vec3&
 Block::~Block()
 {
 	delete m_vbo_point;
-	delete m_vbo_color;
+	delete m_vbo_texture;
 	delete m_ebo;
 }
 
 
-void Block::draw(const ShaderProgram& shader, const Camera& camera) const
+void Block::draw(const std::shared_ptr<ShaderProgram> shader, const Camera& camera) const
 {
-    shader.bind();
+    shader->bind();
 
 
 	glm::mat4 model_matrix = m_pos_matrix * m_rotate_matrix * m_scale_matrix;
@@ -82,11 +142,15 @@ void Block::draw(const ShaderProgram& shader, const Camera& camera) const
 
 	glm::mat4 MVP = projection_view_matrix * model_matrix;
 
-    shader.set_matrix4("MVP", MVP);
+    shader->set_matrix4("MVP", MVP);
 
     
 
     m_vao.bind();
+
+    glActiveTexture(GL_TEXTURE0);
+    ResourceManager::get_texture("stone_brick_texture")->bind();
+    shader->set_int("tex", 0);
 
     if (!ImGuiWrapper::draw_line)
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);

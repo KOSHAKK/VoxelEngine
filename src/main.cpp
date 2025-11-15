@@ -1,26 +1,30 @@
-﻿#include "common/Log.hpp"
+﻿#include <iostream>
 
 #include <glad/glad.h>
 #include <glfwpp/glfwpp.h>
 
-#include <iostream>
 
-#include "OpenGL/ShaderProgram.hpp"
-
-#include "OpenGL/VertexBuffer.hpp"
-#include "OpenGL/VertexArray.hpp"
-
-#include "Object/Block.hpp"
-
-#include <Render/Camera.hpp>
-
+#include <common/Log.hpp>
 #include <common/ImGuiWrapper.hpp>
-
 #include <common/Input.hpp>
+
+#include <Resources/ResourceManager.hpp>
+
+#include <OpenGL/ShaderProgram.hpp>
+#include <OpenGL/VertexBuffer.hpp>
+#include <OpenGL/VertexArray.hpp>
+
+
+#include <Object/Block.hpp>
+
 
 #include <Physics/PhysicsEngine.hpp>
 
-#include <Resources/ResourceManager.hpp>
+
+#include <Render/Camera.hpp>
+
+
+
 
 int g_windowSizeX = 640*2;
 int g_windowSizeY = 480*2-150;
@@ -39,6 +43,10 @@ void glfwKeyCallback(glfw::Window& pWindow, glfw::KeyCode keyCode_, int scanCode
     }
     else if (state_ == glfw::KeyState::Release) {
         Input::ReleaseKey(static_cast<KeyCode>(static_cast<int>(keyCode_)));
+    }
+
+    if (keyCode_ == glfw::KeyCode::Escape) {
+        glfwSetWindowShouldClose(pWindow, GLFW_TRUE);
     }
 }
 
@@ -112,16 +120,18 @@ int main(const int argc, const char** argv) try
         }
     )";
 
-    ShaderProgram& proj = ResourceManager::load_shader_program("basic_shader", "res/Shaders/basic.vert", "res/Shaders/basic.frag");
+    auto proj = ResourceManager::load_shader_program("basic_shader", "res/Shaders/basic.vert", "res/Shaders/basic.frag");
 
 
     Camera camera;
 
-    Block floor({ 0.f,0.f,0.f }, { 100.f, 1.f, 100.f });
 
-    Block b1;
+    ResourceManager::load_texture("stone_brick_texture", "res/Textures/stone_brick.png");
+
+    Block floor({ 0.f,0.f,0.f }, { 100.f, 1.f, 100.f });
     Block b3({ 2.0f, 1.0f, -1.0f });
 
+    Block b1;
 
 
     ImGuiWrapper::init_imgui(pWindow);
@@ -205,8 +215,8 @@ int main(const int argc, const char** argv) try
         glClearColor(ImGuiWrapper::clear_color[0], ImGuiWrapper::clear_color[1], ImGuiWrapper::clear_color[2], 1);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
-        proj.bind();
-		proj.set_float("time", static_cast<float>(glfw::getTime()));
+        proj->bind();
+		proj->set_float("time", static_cast<float>(glfw::getTime()));
 
 
         b1.draw(proj, camera);
