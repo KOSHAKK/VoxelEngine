@@ -169,6 +169,41 @@ namespace {
 
 }
 
+
+JPH::ObjectLayer get_layer_from_motion_type(JPH::EMotionType motion_type)
+{
+	switch (motion_type)
+	{
+	case JPH::EMotionType::Static:
+		return Layers::NON_MOVING;
+	case JPH::EMotionType::Dynamic:
+	case JPH::EMotionType::Kinematic:
+		return Layers::MOVING;
+	default:
+		LOG_ERROR("Unknown motion type in get_layer_from_motion_type");
+		JPH_ASSERT(false);
+		return Layers::NON_MOVING;
+	}
+}
+
+JPH::EActivation get_activation_from_motion_type(JPH::EMotionType motion_type)
+{
+	switch (motion_type)
+	{
+	case JPH::EMotionType::Static:
+		return JPH::EActivation::DontActivate;
+	case JPH::EMotionType::Dynamic:
+	case JPH::EMotionType::Kinematic:
+		return JPH::EActivation::Activate;
+	default:
+		LOG_ERROR("Unknown motion type in get_activation_from_motion_type");
+		JPH_ASSERT(false);
+		return JPH::EActivation::DontActivate;
+	}
+}
+
+
+
 void PhysicsEngine::init()
 {
 	JPH::RegisterDefaultAllocator();
@@ -188,9 +223,9 @@ void PhysicsEngine::init()
 	const JPH::uint cMaxBodyPairs = 1024;
 	const JPH::uint cMaxContactConstraints = 1024;
 
-	static BPLayerInterfaceImpl            broad_phase_layer_interface;
+	static BPLayerInterfaceImpl              broad_phase_layer_interface;
 	static ObjectVsBroadPhaseLayerFilterImpl object_vs_broadphase_layer_filter;
-	static ObjectLayerPairFilterImpl       object_vs_object_layer_filter;
+	static ObjectLayerPairFilterImpl         object_vs_object_layer_filter;
 
 	physics_system.Init(
 		cMaxBodies,
@@ -202,43 +237,48 @@ void PhysicsEngine::init()
 		object_vs_object_layer_filter
 	);
 
-	// job system и temp allocator Ц живут столько же, сколько PhysicsEngine
+	
 	job_system = new JPH::JobSystemThreadPool(JPH::cMaxPhysicsJobs, JPH::cMaxPhysicsBarriers,
 		std::thread::hardware_concurrency() - 1);
 	body_interface = &physics_system.GetBodyInterface();
 
-	// ---- создаЄм пол ----
-	JPH::BoxShapeSettings floor_shape_settings(JPH::Vec3(100.0f, 1.0f, 100.0f));
-	floor_shape_settings.SetEmbedded();
-	JPH::ShapeRefC floor_shape = floor_shape_settings.Create().Get();
+	// Initialize objects in the physics world
 
-	JPH::BodyCreationSettings floor_settings(
-		floor_shape,
-		JPH::RVec3(0.0_r, -1.0_r, 0.0_r),
-		JPH::Quat::sIdentity(),
-		JPH::EMotionType::Static,
-		Layers::NON_MOVING
-	);
+	//// ---- создаЄм пол ----
+	//JPH::BoxShapeSettings floor_shape_settings(JPH::Vec3(100.0f, 1.0f, 100.0f));
+	//floor_shape_settings.SetEmbedded();
+	//JPH::ShapeRefC floor_shape = floor_shape_settings.Create().Get();
 
-	JPH::Body* floor = body_interface->CreateBody(floor_settings);
-	floor_id = floor->GetID();
-	body_interface->AddBody(floor_id, JPH::EActivation::DontActivate);
+	//JPH::BodyCreationSettings floor_settings(
+	//	floor_shape,
+	//	JPH::RVec3(0.0_r, -1.0_r, 0.0_r),
+	//	JPH::Quat::sIdentity(),
+	//	JPH::EMotionType::Static,
+	//	Layers::NON_MOVING
+	//);
 
-	// ---- создаЄм куб ----
-	JPH::BoxShapeSettings cube_shape_settings(JPH::Vec3(2.0f, 2.0f, 2.0f));
-	cube_shape_settings.SetEmbedded();
-	JPH::ShapeRefC cube_shape = cube_shape_settings.Create().Get();
+	//JPH::Body* floor = body_interface->CreateBody(floor_settings);
+	//floor_id = floor->GetID();
+	//body_interface->AddBody(floor_id, JPH::EActivation::DontActivate);
 
-	JPH::BodyCreationSettings cube_settings(
-		cube_shape,
-		JPH::RVec3(0.0_r, 8.0_r, 0.0_r),
-		JPH::Quat::sIdentity(),
-		JPH::EMotionType::Dynamic,
-		Layers::MOVING
-	);
+	//// ---- создаЄм куб ----
+	//JPH::BoxShapeSettings cube_shape_settings(JPH::Vec3(2.0f, 2.0f, 2.0f));
+	//cube_shape_settings.SetEmbedded();
+	//JPH::ShapeRefC cube_shape = cube_shape_settings.Create().Get();
 
-	cube_id = body_interface->CreateAndAddBody(cube_settings, JPH::EActivation::Activate);
+	//JPH::BodyCreationSettings cube_settings(
+	//	cube_shape,
+	//	JPH::RVec3(0.0_r, 8.0_r, 0.0_r),
+	//	JPH::Quat::sIdentity(),
+	//	JPH::EMotionType::Dynamic,
+	//	Layers::MOVING
+	//);
+
+	//cube_id = body_interface->CreateAndAddBody(cube_settings, JPH::EActivation::Activate);
 	//body_interface->SetLinearVelocity(cube_id, JPH::Vec3(0.0f, -5.0f, 0.0f));
+
+	// End of initialization
+
 
 	physics_system.OptimizeBroadPhase();
 }
@@ -247,4 +287,24 @@ void PhysicsEngine::init()
 void PhysicsEngine::terminate()
 {
 	
+}
+
+JPH::BodyID* PhysicsEngine::add_object(Obj_settings settings)
+{
+ 	JPH::BoxShapeSettings shape_settings(settings.size);
+	shape_settings.SetEmbedded();
+	JPH::ShapeRefC shape = shape_settings.Create().Get();
+
+	JPH::BodyCreationSettings settings_(
+		shape,
+		settings.pos,
+		JPH::Quat::sIdentity(),
+		settings.motion_type,
+		get_layer_from_motion_type(settings.motion_type)
+	);
+
+	JPH::Body* body = body_interface->CreateBody(settings_);
+	m_objects_id.push_back(body->GetID());
+	body_interface->AddBody(m_objects_id.back(), get_activation_from_motion_type(settings.motion_type));
+	return &m_objects_id.back();
 }

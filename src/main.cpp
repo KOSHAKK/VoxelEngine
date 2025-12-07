@@ -89,37 +89,6 @@ int main(const int argc, const char** argv) try
 
     glEnable(GL_DEPTH_TEST);
 
-    const char* src_vert = R"(
-        #version 460
-        
-        layout(location = 0) in vec3 vertex_position;
-        layout(location = 1) in vec3 vertex_color;
-        out vec3 color;
-        
-        uniform mat4 MVP;
-        uniform float time;
-
-        void main()
-        {
-           color = vertex_color;
-        
-           gl_Position = MVP * vec4(vertex_position, 1.0);
-
-        }
-    )";
-
-    const char* src_frag = R"(
-        #version 460
-
-        in vec3 color;
-        out vec4 frag_color;
-        uniform float time;
-        void main()
-        {
-            frag_color = vec4(color, 1.0);
-        }
-    )";
-
     auto proj = ResourceManager::load_shader_program("basic_shader", "res/Shaders/basic.vert", "res/Shaders/basic.frag");
 
 
@@ -132,6 +101,11 @@ int main(const int argc, const char** argv) try
     Block b3({ 2.0f, 1.0f, -1.0f });
 
     Block b1;
+
+    using namespace JPH::literals;
+    auto* cube_id = PhysicsEngine::add_object({ JPH::RVec3(0.0_r, 8.0_r, 0.0_r), JPH::Vec3(2.0f, 2.0f, 2.0f), JPH::EMotionType::Dynamic });
+    auto* floor_id = PhysicsEngine::add_object({ JPH::RVec3(0.0_r, -1.0_r, 0.0_r), JPH::Vec3(100.0f, 1.0f, 100.0f), JPH::EMotionType::Static });
+
 
 
     ImGuiWrapper::init_imgui(pWindow);
@@ -174,23 +148,24 @@ int main(const int argc, const char** argv) try
         }
 
 
-        if (PhysicsEngine::body_interface->IsActive(PhysicsEngine::cube_id)) {
+        if (PhysicsEngine::body_interface->IsActive(*cube_id)) 
+        {
             ++step;
 
-            position = PhysicsEngine::body_interface->GetPosition(PhysicsEngine::cube_id);
-            JPH::Vec3 velocity = PhysicsEngine::body_interface->GetLinearVelocity(PhysicsEngine::cube_id);
-            //std::cout << "Step " << step << ": Position = (" << position.GetX() << ", " << position.GetY() << ", " << position.GetZ() << "), Velocity = (" << velocity.GetX() << ", " << velocity.GetY() << ", " << velocity.GetZ() << ")" << std::endl;
+            position = PhysicsEngine::body_interface->GetPosition(*cube_id);
+            JPH::Vec3 velocity = PhysicsEngine::body_interface->GetLinearVelocity(*cube_id);
+            std::cout << "Step " << step << ": Position = (" << position.GetX() << ", " << position.GetY() << ", " << position.GetZ() << "), Velocity = (" << velocity.GetX() << ", " << velocity.GetY() << ", " << velocity.GetZ() << ")" << std::endl;
 
 
             PhysicsEngine::physics_system.Update(deltaTime, 1, &temp_allocator, PhysicsEngine::job_system);
         }
 
 		b3.set_position({ position.GetX(), position.GetY(), position.GetZ() });
+		//std::cout << "Cube position: (" << position.GetX() << ", " << position.GetY() << ", " << position.GetZ() << ")\n";
 
-
-        if (Input::IsKeyPressed(KeyCode::KEY_SPACE) && !PhysicsEngine::body_interface->IsActive(PhysicsEngine::cube_id))
+        if (Input::IsKeyPressed(KeyCode::KEY_SPACE) && !PhysicsEngine::body_interface->IsActive(*cube_id))
         {
-            JPH::Vec3 vel = PhysicsEngine::body_interface->GetLinearVelocity(PhysicsEngine::cube_id);
+            JPH::Vec3 vel = PhysicsEngine::body_interface->GetLinearVelocity(*cube_id);
 
             vel.SetY(5.0f);
 
@@ -206,7 +181,7 @@ int main(const int argc, const char** argv) try
 
 
 
-            PhysicsEngine::body_interface->SetLinearVelocity(PhysicsEngine::cube_id, vel);
+            PhysicsEngine::body_interface->SetLinearVelocity(*cube_id, vel);
 		}
         
 

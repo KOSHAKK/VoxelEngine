@@ -14,7 +14,4 @@ void main()
 	vec2 tex_coords = t_coords;
 
 	frag_color = texture2D(tex, tex_coords);
-
-	
-
 }

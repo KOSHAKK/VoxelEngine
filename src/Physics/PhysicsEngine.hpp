@@ -1,5 +1,8 @@
 #pragma once
 
+#include <deque>
+
+
 #include <Jolt/Jolt.h>
 
 #include <Jolt/RegisterTypes.h>
@@ -19,8 +22,20 @@
 class PhysicsEngine 
 {
 public:
+	struct Obj_settings
+	{
+		JPH::RVec3 pos;
+		JPH::Vec3 size;
+		JPH::EMotionType motion_type;
+	};
+
+
 	static void init();
 	static void terminate();
+
+	static JPH::BodyID* add_object(Obj_settings settings);
+
+
 
 
 public:
@@ -28,6 +43,8 @@ public:
     static inline JPH::BodyInterface* body_interface = nullptr;
     static inline JPH::JobSystemThreadPool* job_system;
 
-    static inline JPH::BodyID cube_id;
-    static inline JPH::BodyID floor_id;
+	static inline std::deque<JPH::BodyID> m_objects_id;
+
+    //static inline JPH::BodyID cube_id;
+    //static inline JPH::BodyID floor_id;
 };
