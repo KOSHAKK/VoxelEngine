@@ -32,6 +32,8 @@ public:
 
 	static void init();
 	static void terminate();
+	static void update(float dt, JPH::Vec3& position); // temp position parameter
+
 
 	static JPH::BodyID* add_object(Obj_settings settings);
 

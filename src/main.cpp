@@ -114,9 +114,8 @@ int main(const int argc, const char** argv) try
 
     JPH::uint step = 0;
 
-    JPH::TempAllocatorImpl  temp_allocator{ 10 * 1024 * 1024 };
 
-	JPH::RVec3 position(0.f, 0.f, 0.f);
+	JPH::Vec3 position(0.f, 0.f, 0.f);
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(pWindow))
     {
@@ -148,17 +147,7 @@ int main(const int argc, const char** argv) try
         }
 
 
-        if (PhysicsEngine::body_interface->IsActive(*cube_id)) 
-        {
-            ++step;
-
-            position = PhysicsEngine::body_interface->GetPosition(*cube_id);
-            JPH::Vec3 velocity = PhysicsEngine::body_interface->GetLinearVelocity(*cube_id);
-            std::cout << "Step " << step << ": Position = (" << position.GetX() << ", " << position.GetY() << ", " << position.GetZ() << "), Velocity = (" << velocity.GetX() << ", " << velocity.GetY() << ", " << velocity.GetZ() << ")" << std::endl;
-
-
-            PhysicsEngine::physics_system.Update(deltaTime, 1, &temp_allocator, PhysicsEngine::job_system);
-        }
+        PhysicsEngine::update(deltaTime, position);
 
 		b3.set_position({ position.GetX(), position.GetY(), position.GetZ() });
 		//std::cout << "Cube position: (" << position.GetX() << ", " << position.GetY() << ", " << position.GetZ() << ")\n";

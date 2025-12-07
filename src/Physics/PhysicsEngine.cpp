@@ -289,6 +289,20 @@ void PhysicsEngine::terminate()
 	
 }
 
+void PhysicsEngine::update(float dt, JPH::Vec3& position)
+{
+	static JPH::TempAllocatorImpl  temp_allocator{ 10 * 1024 * 1024 }; 
+
+	for (const auto& body_id : m_objects_id)
+	{
+		if (body_interface->IsActive(body_id))
+		{
+			PhysicsEngine::physics_system.Update(dt, 1, &temp_allocator, job_system);
+			position = PhysicsEngine::body_interface->GetPosition(body_id);
+		}
+	}
+}
+
 JPH::BodyID* PhysicsEngine::add_object(Obj_settings settings)
 {
  	JPH::BoxShapeSettings shape_settings(settings.size);
