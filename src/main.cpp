@@ -24,6 +24,9 @@
 #include <Render/Camera.hpp>
 
 
+#include <glm/gtc/quaternion.hpp>
+
+using namespace JPH::literals;
 
 
 int g_windowSizeX = 640*2;
@@ -94,7 +97,6 @@ int main(const int argc, const char** argv) try
 
     Camera camera;
 
-
     ResourceManager::load_texture("stone_brick_texture", "res/Textures/stone_brick.png");
 
     Block floor({ 0.f,0.f,0.f }, { 100.f, 1.f, 100.f });
@@ -102,21 +104,16 @@ int main(const int argc, const char** argv) try
 
     Block b1;
 
-    using namespace JPH::literals;
-    auto* cube_id = PhysicsEngine::add_object({ JPH::RVec3(0.0_r, 8.0_r, 0.0_r), JPH::Vec3(2.0f, 2.0f, 2.0f), JPH::EMotionType::Dynamic });
-    auto* floor_id = PhysicsEngine::add_object({ JPH::RVec3(0.0_r, -1.0_r, 0.0_r), JPH::Vec3(100.0f, 1.0f, 100.0f), JPH::EMotionType::Static });
 
+    PhysicsEngine::add_object({ JPH::RVec3(0.0_r, 8.0_r, 0.0_r), JPH::Vec3(1.0f, 1.0f, 1.0f), JPH::EMotionType::Dynamic }, "cube1");
+    PhysicsEngine::add_object({ JPH::RVec3(0.8_r, 12.0_r, 0.8_r), JPH::Vec3(1.0f, 1.0f, 1.0f), JPH::EMotionType::Dynamic }, "cube2");
+    PhysicsEngine::add_object({ JPH::RVec3(0.0_r, -1.0_r, 0.0_r), JPH::Vec3(100.0f, 2.0f, 100.0f), JPH::EMotionType::Static }, "floor");
 
 
     ImGuiWrapper::init_imgui(pWindow);
 
 
 
-    JPH::uint step = 0;
-
-
-	JPH::Vec3 position(0.f, 0.f, 0.f);
-    /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(pWindow))
     {
         static double lastTime = glfwGetTime();
@@ -147,32 +144,54 @@ int main(const int argc, const char** argv) try
         }
 
 
-        PhysicsEngine::update(deltaTime, position);
+        PhysicsEngine::update(deltaTime);
 
+        auto cube_id = PhysicsEngine::get_object("cube1");
+        JPH::Vec3 position = PhysicsEngine::body_interface->GetPosition(cube_id);
 		b3.set_position({ position.GetX(), position.GetY(), position.GetZ() });
-		//std::cout << "Cube position: (" << position.GetX() << ", " << position.GetY() << ", " << position.GetZ() << ")\n";
+        JPH::RVec3 p = PhysicsEngine::body_interface->GetPosition(cube_id);
+        JPH::Quat q = PhysicsEngine::body_interface->GetRotation(cube_id);
 
-        if (Input::IsKeyPressed(KeyCode::KEY_SPACE) && !PhysicsEngine::body_interface->IsActive(*cube_id))
-        {
-            JPH::Vec3 vel = PhysicsEngine::body_interface->GetLinearVelocity(*cube_id);
-
-            vel.SetY(5.0f);
-
-            if (rand() % 2 == 0)
-                vel.SetX(2.0f);
-            else
-				vel.SetX(-2.0f);
-
-            if (rand() % 2 == 0)
-                vel.SetZ(2.0f);
-            else
-                vel.SetZ(-2.0f);
+        glm::quat gq(q.GetW(), q.GetX(), q.GetY(), q.GetZ());
+        glm::mat4 R = glm::mat4_cast(gq);
+        b3.set_rotation_matrix(R); 
 
 
 
-            PhysicsEngine::body_interface->SetLinearVelocity(*cube_id, vel);
-		}
-        
+
+        auto cube2_id = PhysicsEngine::get_object("cube2");
+        JPH::Vec3 position2 = PhysicsEngine::body_interface->GetPosition(cube2_id);
+        b1.set_position({ position2.GetX(), position2.GetY(), position2.GetZ() });
+        JPH::RVec3 p2 = PhysicsEngine::body_interface->GetPosition(cube2_id);
+        JPH::Quat q2 = PhysicsEngine::body_interface->GetRotation(cube2_id);
+       
+        glm::quat gq2(q2.GetW(), q2.GetX(), q2.GetY(), q2.GetZ());
+        glm::mat4 R2 = glm::mat4_cast(gq2);
+        b1.set_rotation_matrix(R2);
+
+
+        JPH::Vec3 vel = PhysicsEngine::body_interface->GetLinearVelocity(cube_id);
+
+        if (Input::IsKeyPressed(KeyCode::KEY_UP)) {
+            vel.SetZ(-ImGuiWrapper::push_strength);
+            PhysicsEngine::body_interface->SetLinearVelocity(cube_id, vel);
+        }
+        if (Input::IsKeyPressed(KeyCode::KEY_DOWN)) {
+            vel.SetZ(ImGuiWrapper::push_strength);
+            PhysicsEngine::body_interface->SetLinearVelocity(cube_id, vel);
+        }
+        if (Input::IsKeyPressed(KeyCode::KEY_LEFT)) {
+            vel.SetX(-ImGuiWrapper::push_strength);
+            PhysicsEngine::body_interface->SetLinearVelocity(cube_id, vel);
+        }
+        if (Input::IsKeyPressed(KeyCode::KEY_RIGHT)) {
+            vel.SetX(ImGuiWrapper::push_strength);
+            PhysicsEngine::body_interface->SetLinearVelocity(cube_id, vel);
+        }
+        if (Input::IsKeyPressed(KeyCode::KEY_SPACE)) {
+            vel.SetY(3.0f);
+            PhysicsEngine::body_interface->SetLinearVelocity(cube_id, vel);
+        }
 
 
         /* Render here */
@@ -184,13 +203,19 @@ int main(const int argc, const char** argv) try
 
 
         b1.draw(proj, camera);
-        floor.draw(proj, camera);
         b3.draw(proj, camera);
+        floor.draw(proj, camera);
 
+
+
+
+
+
+#if 0
         b1.set_position({ ImGuiWrapper::debug_block_position[0], ImGuiWrapper::debug_block_position[1], ImGuiWrapper::debug_block_position[2] });
         b1.set_scale({ ImGuiWrapper::debug_block_scale[0], ImGuiWrapper::debug_block_scale[1], ImGuiWrapper::debug_block_scale[2] });
 		b1.set_rotation({ ImGuiWrapper::debug_block_rotation[0], ImGuiWrapper::debug_block_rotation[1], ImGuiWrapper::debug_block_rotation[2] });
-
+#endif
 
 		camera.set_position({ ImGuiWrapper::debug_camera_position[0], ImGuiWrapper::debug_camera_position[1], ImGuiWrapper::debug_camera_position[2] });
 		camera.set_rotation({ ImGuiWrapper::debug_camera_rotation[0], ImGuiWrapper::debug_camera_rotation[1], ImGuiWrapper::debug_camera_rotation[2] });

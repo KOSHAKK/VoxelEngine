@@ -5,7 +5,10 @@
 #include <stdarg.h>
 
 
+
 using namespace JPH::literals;
+
+
 
 namespace {
 
@@ -209,6 +212,12 @@ void PhysicsEngine::init()
 	JPH::RegisterDefaultAllocator();
 	JPH::Trace = TraceImpl;
 
+	//static MyContactListener m_contact_listener;
+	//static MyBodyActivationListener m_activation_listener;
+	//physics_system.SetContactListener(&m_contact_listener);
+	//physics_system.SetBodyActivationListener(&m_activation_listener);
+
+
 #ifdef NDEBUG
 	JPH_IF_ENABLE_ASSERTS(AssertFailed = AssertFailedImpl;);
 #else
@@ -242,44 +251,6 @@ void PhysicsEngine::init()
 		std::thread::hardware_concurrency() - 1);
 	body_interface = &physics_system.GetBodyInterface();
 
-	// Initialize objects in the physics world
-
-	//// ---- создаём пол ----
-	//JPH::BoxShapeSettings floor_shape_settings(JPH::Vec3(100.0f, 1.0f, 100.0f));
-	//floor_shape_settings.SetEmbedded();
-	//JPH::ShapeRefC floor_shape = floor_shape_settings.Create().Get();
-
-	//JPH::BodyCreationSettings floor_settings(
-	//	floor_shape,
-	//	JPH::RVec3(0.0_r, -1.0_r, 0.0_r),
-	//	JPH::Quat::sIdentity(),
-	//	JPH::EMotionType::Static,
-	//	Layers::NON_MOVING
-	//);
-
-	//JPH::Body* floor = body_interface->CreateBody(floor_settings);
-	//floor_id = floor->GetID();
-	//body_interface->AddBody(floor_id, JPH::EActivation::DontActivate);
-
-	//// ---- создаём куб ----
-	//JPH::BoxShapeSettings cube_shape_settings(JPH::Vec3(2.0f, 2.0f, 2.0f));
-	//cube_shape_settings.SetEmbedded();
-	//JPH::ShapeRefC cube_shape = cube_shape_settings.Create().Get();
-
-	//JPH::BodyCreationSettings cube_settings(
-	//	cube_shape,
-	//	JPH::RVec3(0.0_r, 8.0_r, 0.0_r),
-	//	JPH::Quat::sIdentity(),
-	//	JPH::EMotionType::Dynamic,
-	//	Layers::MOVING
-	//);
-
-	//cube_id = body_interface->CreateAndAddBody(cube_settings, JPH::EActivation::Activate);
-	//body_interface->SetLinearVelocity(cube_id, JPH::Vec3(0.0f, -5.0f, 0.0f));
-
-	// End of initialization
-
-
 	physics_system.OptimizeBroadPhase();
 }
 
@@ -289,25 +260,29 @@ void PhysicsEngine::terminate()
 	
 }
 
-void PhysicsEngine::update(float dt, JPH::Vec3& position)
+void PhysicsEngine::update(float dt)
 {
-	static JPH::TempAllocatorImpl  temp_allocator{ 10 * 1024 * 1024 }; 
+	static JPH::TempAllocatorImpl m_temp_allocator {10 * 1024 * 1024};
 
 	for (const auto& body_id : m_objects_id)
 	{
-		if (body_interface->IsActive(body_id))
+		if (body_interface->IsActive(body_id.second))
 		{
-			PhysicsEngine::physics_system.Update(dt, 1, &temp_allocator, job_system);
-			position = PhysicsEngine::body_interface->GetPosition(body_id);
+			PhysicsEngine::physics_system.Update(dt, 1, &m_temp_allocator, job_system);
 		}
 	}
 }
 
-JPH::BodyID* PhysicsEngine::add_object(Obj_settings settings)
+JPH::BodyID PhysicsEngine::add_object(Obj_settings settings, const std::string& name)
 {
+	if (m_objects_id.contains(name)) {
+		LOG_WARN("Physical object with name {} alredy exist \t [ Potential memory leak ]", name);
+	}
+
  	JPH::BoxShapeSettings shape_settings(settings.size);
 	shape_settings.SetEmbedded();
 	JPH::ShapeRefC shape = shape_settings.Create().Get();
+
 
 	JPH::BodyCreationSettings settings_(
 		shape,
@@ -318,7 +293,19 @@ JPH::BodyID* PhysicsEngine::add_object(Obj_settings settings)
 	);
 
 	JPH::Body* body = body_interface->CreateBody(settings_);
-	m_objects_id.push_back(body->GetID());
-	body_interface->AddBody(m_objects_id.back(), get_activation_from_motion_type(settings.motion_type));
-	return &m_objects_id.back();
+	auto& body_id = m_objects_id[name] = body->GetID();
+	body_interface->AddBody(body_id, get_activation_from_motion_type(settings.motion_type));
+	return body_id;
+}
+
+JPH::BodyID PhysicsEngine::get_object(const std::string& name)
+{
+	auto found = m_objects_id.find(name);
+
+	if (found == m_objects_id.end()) {
+		LOG_ERROR("Can't find physical object with name: {}", name);
+		return JPH::BodyID();
+	}
+
+	return found->second;
 }

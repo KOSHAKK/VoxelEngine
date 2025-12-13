@@ -204,3 +204,8 @@ void Block::set_rotation(const glm::vec3& rotation)
                                  0,              0,             0, 1
 	);
 }
+
+void Block::set_rotation_matrix(const glm::mat4& rot_matrix)
+{
+    m_rotate_matrix = rot_matrix;
+}

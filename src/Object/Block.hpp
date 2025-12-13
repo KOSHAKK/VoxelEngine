@@ -25,6 +25,9 @@ public:
     void set_position(const glm::vec3& position);
     void set_rotation(const glm::vec3& rotation);
 
+
+    void set_rotation_matrix(const glm::mat4& rot_matrix);
+
 private:
     VertexArray m_vao;
     VertexBuffer* m_vbo_point = nullptr;

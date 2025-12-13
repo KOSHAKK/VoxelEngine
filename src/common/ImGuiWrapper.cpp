@@ -51,6 +51,7 @@ void ImGuiWrapper::update_imgui()
     ImGui::DragFloat3("Camera position", ImGuiWrapper::debug_camera_position, 0.1f, -10.f, 10.f);
     ImGui::DragFloat3("Camera rotation", ImGuiWrapper::debug_camera_rotation, 1.f, 0.f, 360.f);
 	ImGui::Checkbox("Perspective mode", &ImGuiWrapper::perspective_mode);
+	ImGui::DragFloat("Push strength", &ImGuiWrapper::push_strength, 0.1f, 0.1f, 10.f);
 
 	ImGui::End();
 

@@ -1,6 +1,7 @@
 #pragma once
 
-#include <deque>
+#include <map>
+#include <string>
 
 
 #include <Jolt/Jolt.h>
@@ -32,21 +33,23 @@ public:
 
 	static void init();
 	static void terminate();
-	static void update(float dt, JPH::Vec3& position); // temp position parameter
+	static void update(float dt);
 
-
-	static JPH::BodyID* add_object(Obj_settings settings);
-
+	static JPH::BodyID add_object(Obj_settings settings, const std::string& name);
+	static JPH::BodyID get_object(const std::string& name);
+	
 
 
 
 public:
+
     static inline JPH::PhysicsSystem physics_system;
     static inline JPH::BodyInterface* body_interface = nullptr;
     static inline JPH::JobSystemThreadPool* job_system;
 
-	static inline std::deque<JPH::BodyID> m_objects_id;
+	static inline std::map<std::string, JPH::BodyID> m_objects_id;
 
+	//static inline std::deque<JPH::BodyID> m_objects_id;
     //static inline JPH::BodyID cube_id;
     //static inline JPH::BodyID floor_id;
 };
