@@ -53,6 +53,35 @@ void glfwKeyCallback(glfw::Window& pWindow, glfw::KeyCode keyCode_, int scanCode
     }
 }
 
+void glfwMouseButtonCallback(glfw::Window& window_, glfw::MouseButton button_, glfw::MouseButtonState state_, glfw::ModifierKeyBit modifiers_)
+{
+    if (state_ == glfw::MouseButtonState::Press) {
+        Input::PressMouseButton(static_cast<MouseButton>(static_cast<int>(button_)));
+    }
+    else if (state_ == glfw::MouseButtonState::Release) {
+        Input::ReleaseMouseButton(static_cast<MouseButton>(static_cast<int>(button_)));
+    }
+}
+
+glm::vec2 mouse_delta;
+bool is_mouse_moving = false;
+void glfwMousePosCallback(glfw::Window& window_, double xpos, double ypos)
+{
+    static glm::vec2 mouse_prev_pos;
+
+    double x;
+    double y;
+
+    glfwGetCursorPos(window_, &x, &y);
+
+    mouse_delta.x = mouse_prev_pos.x - x;
+    mouse_delta.y = mouse_prev_pos.y - y;
+
+    mouse_prev_pos = { x,y };
+
+    is_mouse_moving = true;
+}
+
 
 int main(const int argc, const char** argv) try
 {
@@ -75,8 +104,8 @@ int main(const int argc, const char** argv) try
     pWindow.framebufferSizeEvent.setCallback(glfwWindowSizeCallback);
 
     pWindow.keyEvent.setCallback(glfwKeyCallback);
-
-
+    pWindow.mouseButtonEvent.setCallback(glfwMouseButtonCallback);
+    pWindow.cursorPosEvent.setCallback(glfwMousePosCallback);
 
     glfw::makeContextCurrent(pWindow);
 
@@ -96,13 +125,17 @@ int main(const int argc, const char** argv) try
 
 
     Camera camera;
+    camera.set_position({ 0.f, 4.f, 8.f });
+
+
 
     ResourceManager::load_texture("stone_brick_texture", "res/Textures/stone_brick.png");
+    ResourceManager::load_texture("grass_texture", "res/Textures/grass.png");
 
-    Block floor({ 0.f,0.f,0.f }, { 100.f, 1.f, 100.f });
-    Block b3({ 2.0f, 1.0f, -1.0f });
+    Block floor("grass_texture", { 0.f, 0.f, 0.f }, {100.f, 1.f, 100.f});
+    Block b3("stone_brick_texture", { 2.0f, 1.0f, -1.0f });
 
-    Block b1;
+    Block b1("stone_brick_texture");
 
 
     PhysicsEngine::add_object({ JPH::RVec3(0.0_r, 8.0_r, 0.0_r), JPH::Vec3(1.0f, 1.0f, 1.0f), JPH::EMotionType::Dynamic }, "cube1");
@@ -122,29 +155,23 @@ int main(const int argc, const char** argv) try
 
         
         if (Input::IsKeyPressed(KeyCode::KEY_W)) {
-			//ImGuiWrapper::debug_camera_position[2] -= 5.0f * deltaTime;
             camera.move_forward(5.f, deltaTime);
         }
 		else if (Input::IsKeyPressed(KeyCode::KEY_S)) {
-            /*ImGuiWrapper::debug_camera_position[2] += 5.0f * deltaTime;*/
             camera.move_forward(-5.f, deltaTime);
 		}
 
         if (Input::IsKeyPressed(KeyCode::KEY_A)) {
-            /*ImGuiWrapper::debug_camera_position[0] -= 5.0f * deltaTime;*/
             camera.move_right(-5.f, deltaTime);
         }
         else if (Input::IsKeyPressed(KeyCode::KEY_D)) {
-            /*ImGuiWrapper::debug_camera_position[0] += 5.0f * deltaTime;*/
             camera.move_right(5.f, deltaTime);
         }
 
         if (Input::IsKeyPressed(KeyCode::KEY_LEFT_SHIFT)) {
-            //ImGuiWrapper::debug_camera_position[1] += 5.0f * deltaTime;
             camera.move_up(5.f, deltaTime);
         }
         else if (Input::IsKeyPressed(KeyCode::KEY_LEFT_CONTROL)) {
-            //ImGuiWrapper::debug_camera_position[1] -= 5.0f * deltaTime;
             camera.move_up(-5.f, deltaTime);
         }
 
@@ -217,8 +244,20 @@ int main(const int argc, const char** argv) try
 #endif
 
 		//camera.set_position({ ImGuiWrapper::debug_camera_position[0], ImGuiWrapper::debug_camera_position[1], ImGuiWrapper::debug_camera_position[2] });
-		camera.set_rotation({ ImGuiWrapper::debug_camera_rotation[0], ImGuiWrapper::debug_camera_rotation[1], ImGuiWrapper::debug_camera_rotation[2] });
-        
+		//camera.set_rotation({ ImGuiWrapper::debug_camera_rotation[0], ImGuiWrapper::debug_camera_rotation[1], ImGuiWrapper::debug_camera_rotation[2] });
+
+        if (is_mouse_moving && Input::IsMouseButtonPressed(MouseButton::MOUSE_BUTTON_2)) {
+            camera.set_rotate_delta(mouse_delta, deltaTime);
+            is_mouse_moving = false;
+        } 
+        if (Input::IsMouseButtonPressed(MouseButton::MOUSE_BUTTON_2)) {
+            glfwSetInputMode(pWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        }
+        else {
+            glfwSetInputMode(pWindow, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+        }
+
+
         if (ImGuiWrapper::perspective_mode)
             camera.set_projection_mode(Camera::ProjectionMode::Perspective);
         else

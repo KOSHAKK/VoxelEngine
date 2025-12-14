@@ -44,7 +44,7 @@ void Camera::update_view_matrix()
 
     m_view_matrix = glm::lookAt(m_position, m_position + m_direction, m_up);
 
-    glm::mat3 euler_matrix_rotate = rotate_matrix_y * rotate_matrix_x * rotate_matrix_z;
+    glm::mat3 euler_matrix_rotate = rotate_matrix_x * rotate_matrix_z * rotate_matrix_y;
 
     m_direction = glm::normalize(glm::transpose(euler_matrix_rotate) * s_world_forward);
     m_right = glm::normalize(glm::transpose(euler_matrix_rotate) * s_world_right);
@@ -102,17 +102,29 @@ void Camera::set_projection_mode(const ProjectionMode projection_mode)
     update_projection_matrix();
 }
 
+void Camera::set_rotate_delta(const glm::vec2& delta, float dt)
+{
+    m_rotation.x += -delta.y * dt * 10;
+    m_rotation.y += -delta.x * dt * 10;
+    if (m_rotation.x >= 90.f) m_rotation.x = 90.f;
+    if (m_rotation.x <= -90.f) m_rotation.x = -90.f;
+    update_view_matrix();
+}
+
 void Camera::move_forward(const float delta, const float dt)
 {
     m_position += m_direction * delta * dt;
+    update_view_matrix();
 }
 
 void Camera::move_right(const float delta, const float dt)
 {
     m_position += m_right * delta * dt;
+    update_view_matrix();
 }
 
 void Camera::move_up(const float delta, const float dt)
 {
     m_position += m_up * delta * dt;
+    update_view_matrix();
 }

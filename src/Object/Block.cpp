@@ -7,7 +7,8 @@
 
 #include <Resources/ResourceManager.hpp>
 
-Block::Block(const glm::vec3& position, const glm::vec3& scale, const glm::vec3& rotation)
+Block::Block(const std::string& texture_name, const glm::vec3& position, const glm::vec3& scale, const glm::vec3& rotation)
+    : m_texture_name(texture_name)
 {
     GLfloat point[] = {
     -1.0f, -1.f, -1.f,
@@ -15,7 +16,7 @@ Block::Block(const glm::vec3& position, const glm::vec3& scale, const glm::vec3&
     -1.0f,  1.f,  1.f,
     -1.0f, -1.f,  1.f,
     
-    // BACK            
+    // BACK
      1.0f, -1.f, -1.f,
      1.0f,  1.f, -1.f,
      1.0f,  1.f,  1.f,
@@ -149,7 +150,7 @@ void Block::draw(const std::shared_ptr<ShaderProgram> shader, const Camera& came
     m_vao.bind();
 
     glActiveTexture(GL_TEXTURE0);
-    ResourceManager::get_texture("stone_brick_texture")->bind();
+    ResourceManager::get_texture(m_texture_name)->bind();
     shader->set_int("tex", 0);
 
     if (!ImGuiWrapper::draw_line)

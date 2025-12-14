@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <memory>
+#include <string>
 
 #include <glm/glm.hpp>
 
@@ -16,7 +17,7 @@
 class Block 
 {
 public:
-    Block(const glm::vec3& position = {0.f, 0.f, 0.f}, const glm::vec3& scale = { 1.f, 1.f, 1.f }, const glm::vec3& rotation = { 0.f, 0.f, 0.f });
+    Block(const std::string& texture_name, const glm::vec3& position = {0.f, 0.f, 0.f}, const glm::vec3& scale = { 1.f, 1.f, 1.f }, const glm::vec3& rotation = { 0.f, 0.f, 0.f });
     ~Block();
 
     void draw(const std::shared_ptr<ShaderProgram> shader, const Camera& camera) const;
@@ -34,6 +35,7 @@ private:
     VertexBuffer* m_vbo_texture = nullptr;
     IndexBuffer* m_ebo = nullptr;
 
+    std::string m_texture_name;
 
     glm::mat4 m_pos_matrix;
     glm::mat4 m_scale_matrix;

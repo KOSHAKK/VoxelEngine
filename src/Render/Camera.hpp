@@ -24,6 +24,8 @@ public:
 
     glm::vec3 get_position() { return m_position; }
 
+    void set_rotate_delta(const glm::vec2& delta, float dt);
+
     void move_forward(const float delta, const float dt);
     void move_right(const float delta, const float dt);
     void move_up(const float delta, const float dt);
