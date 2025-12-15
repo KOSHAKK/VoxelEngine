@@ -17,10 +17,10 @@
 class Block 
 {
 public:
-    Block(const std::string& texture_name, const glm::vec3& position = {0.f, 0.f, 0.f}, const glm::vec3& scale = { 1.f, 1.f, 1.f }, const glm::vec3& rotation = { 0.f, 0.f, 0.f });
+    Block(const std::string& texture_name = "__[EMPTY]", const glm::vec3& position = {0.f, 0.f, 0.f}, const glm::vec3& scale = {1.f, 1.f, 1.f}, const glm::vec3& rotation = {0.f, 0.f, 0.f});
     ~Block();
 
-    void draw(const std::shared_ptr<ShaderProgram> shader, const Camera& camera) const;
+    void draw(const std::shared_ptr<ShaderProgram> shader, const Camera& camera, const glm::vec3& color = { 0.f ,0.f ,0.f }) const;
 
     void set_scale(const glm::vec3& scale);
     void set_position(const glm::vec3& position);

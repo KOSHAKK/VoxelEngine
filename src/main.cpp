@@ -23,6 +23,8 @@
 
 #include <Render/Camera.hpp>
 
+#include <Object/LightSource.hpp>
+
 
 #include <glm/gtc/quaternion.hpp>
 
@@ -61,10 +63,20 @@ void glfwMouseButtonCallback(glfw::Window& window_, glfw::MouseButton button_, g
     else if (state_ == glfw::MouseButtonState::Release) {
         Input::ReleaseMouseButton(static_cast<MouseButton>(static_cast<int>(button_)));
     }
+
+#if 0
+    if (Input::IsMouseButtonPressed(MouseButton::MOUSE_BUTTON_2)) {
+       glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    }
+    else {
+       glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+    }
+#endif
+
 }
 
-glm::vec2 mouse_delta;
 bool is_mouse_moving = false;
+glm::vec2 mouse_delta;
 void glfwMousePosCallback(glfw::Window& window_, double xpos, double ypos)
 {
     static glm::vec2 mouse_prev_pos;
@@ -74,8 +86,8 @@ void glfwMousePosCallback(glfw::Window& window_, double xpos, double ypos)
 
     glfwGetCursorPos(window_, &x, &y);
 
-    mouse_delta.x = mouse_prev_pos.x - x;
-    mouse_delta.y = mouse_prev_pos.y - y;
+    mouse_delta.x = (mouse_prev_pos.x - x) / 5.f;
+    mouse_delta.y = (mouse_prev_pos.y - y) / 5.f;
 
     mouse_prev_pos = { x,y };
 
@@ -122,10 +134,11 @@ int main(const int argc, const char** argv) try
     glEnable(GL_DEPTH_TEST);
 
     auto proj = ResourceManager::load_shader_program("basic_shader", "res/Shaders/basic.vert", "res/Shaders/basic.frag");
-
+    auto light_source_proj = ResourceManager::load_shader_program("light_source_shader", "res/Shaders/light_source.vert", "res/Shaders/light_source.frag");
 
     Camera camera;
     camera.set_position({ 0.f, 4.f, 8.f });
+
 
 
 
@@ -137,6 +150,8 @@ int main(const int argc, const char** argv) try
 
     Block b1("stone_brick_texture");
 
+    LightSource light_source({ 5.f,5.f,5.f }, { 0.1f, 0.1f, 0.1f });
+
 
     PhysicsEngine::add_object({ JPH::RVec3(0.0_r, 8.0_r, 0.0_r), JPH::Vec3(1.0f, 1.0f, 1.0f), JPH::EMotionType::Dynamic }, "cube1");
     PhysicsEngine::add_object({ JPH::RVec3(0.8_r, 12.0_r, 0.8_r), JPH::Vec3(1.0f, 1.0f, 1.0f), JPH::EMotionType::Dynamic }, "cube2");
@@ -145,7 +160,7 @@ int main(const int argc, const char** argv) try
 
     ImGuiWrapper::init_imgui(pWindow);
 
-    glfw::swapInterval(1);
+    //glfw::swapInterval(1);
     while (!glfwWindowShouldClose(pWindow))
     {
         static double lastTime = glfwGetTime();
@@ -153,13 +168,13 @@ int main(const int argc, const char** argv) try
         float deltaTime = float(currentTime - lastTime);
         lastTime = currentTime;
 
-        
+
         if (Input::IsKeyPressed(KeyCode::KEY_W)) {
             camera.move_forward(5.f, deltaTime);
         }
-		else if (Input::IsKeyPressed(KeyCode::KEY_S)) {
+        else if (Input::IsKeyPressed(KeyCode::KEY_S)) {
             camera.move_forward(-5.f, deltaTime);
-		}
+        }
 
         if (Input::IsKeyPressed(KeyCode::KEY_A)) {
             camera.move_right(-5.f, deltaTime);
@@ -180,12 +195,12 @@ int main(const int argc, const char** argv) try
 
         auto cube_id = PhysicsEngine::get_object("cube1");
         JPH::Vec3 position = PhysicsEngine::body_interface->GetPosition(cube_id);
-		b3.set_position({ position.GetX(), position.GetY(), position.GetZ() });
+        b3.set_position({ position.GetX(), position.GetY(), position.GetZ() });
         JPH::Quat q = PhysicsEngine::body_interface->GetRotation(cube_id);
 
         glm::quat gq(q.GetW(), q.GetX(), q.GetY(), q.GetZ());
         glm::mat4 R = glm::mat4_cast(gq);
-        b3.set_rotation_matrix(R); 
+        b3.set_rotation_matrix(R);
 
 
 
@@ -194,10 +209,16 @@ int main(const int argc, const char** argv) try
         JPH::Vec3 position2 = PhysicsEngine::body_interface->GetPosition(cube2_id);
         b1.set_position({ position2.GetX(), position2.GetY(), position2.GetZ() });
         JPH::Quat q2 = PhysicsEngine::body_interface->GetRotation(cube2_id);
-       
+
         glm::quat gq2(q2.GetW(), q2.GetX(), q2.GetY(), q2.GetZ());
         glm::mat4 R2 = glm::mat4_cast(gq2);
         b1.set_rotation_matrix(R2);
+
+
+
+        light_source.set_position({ ImGuiWrapper::debug_light_position[0],ImGuiWrapper::debug_light_position[1], ImGuiWrapper::debug_light_position[2] });
+        light_source.set_scale({ ImGuiWrapper::debug_light_scale[0],ImGuiWrapper::debug_light_scale[1], ImGuiWrapper::debug_light_scale[2] });
+
 
 
         JPH::Vec3 vel = PhysicsEngine::body_interface->GetLinearVelocity(cube_id);
@@ -236,6 +257,9 @@ int main(const int argc, const char** argv) try
         b3.draw(proj, camera);
         floor.draw(proj, camera);
 
+        light_source.draw(light_source_proj, camera);
+
+
 
 #if 0
         b1.set_position({ ImGuiWrapper::debug_block_position[0], ImGuiWrapper::debug_block_position[1], ImGuiWrapper::debug_block_position[2] });
@@ -250,12 +274,6 @@ int main(const int argc, const char** argv) try
             camera.set_rotate_delta(mouse_delta, deltaTime);
             is_mouse_moving = false;
         } 
-        if (Input::IsMouseButtonPressed(MouseButton::MOUSE_BUTTON_2)) {
-            glfwSetInputMode(pWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-        }
-        else {
-            glfwSetInputMode(pWindow, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
-        }
 
 
         if (ImGuiWrapper::perspective_mode)

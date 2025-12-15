@@ -24,6 +24,9 @@ add_executable(${PROJECT_NAME}
 	src/Object/Block.cpp
 	src/Object/Block.hpp
 	
+	src/Object/LightSource.hpp
+	src/Object/LightSource.cpp
+	
 	src/common/ImGuiWrapper.cpp
 	src/common/ImGuiWrapper.hpp
 	

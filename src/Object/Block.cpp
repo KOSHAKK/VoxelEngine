@@ -133,7 +133,7 @@ Block::~Block()
 }
 
 
-void Block::draw(const std::shared_ptr<ShaderProgram> shader, const Camera& camera) const
+void Block::draw(const std::shared_ptr<ShaderProgram> shader, const Camera& camera, const glm::vec3& color) const
 {
     shader->bind();
 
@@ -146,12 +146,21 @@ void Block::draw(const std::shared_ptr<ShaderProgram> shader, const Camera& came
     shader->set_matrix4("MVP", MVP);
 
     
-
     m_vao.bind();
 
-    glActiveTexture(GL_TEXTURE0);
-    ResourceManager::get_texture(m_texture_name)->bind();
-    shader->set_int("tex", 0);
+
+    if (m_texture_name != "__[EMPTY]")
+    {
+        glActiveTexture(GL_TEXTURE0);
+        ResourceManager::get_texture(m_texture_name)->bind();
+
+        shader->set_int("tex", 0);
+    }
+    else 
+    {
+        shader->set_vec3("color", color);
+    }
+
 
     if (!ImGuiWrapper::draw_line)
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);

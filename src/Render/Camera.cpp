@@ -1,5 +1,6 @@
 #include "Camera.hpp"
 
+#include <glm/glm.hpp>
 #include <glm/trigonometric.hpp>
 #include <glm/ext/matrix_transform.hpp>
 
@@ -104,8 +105,8 @@ void Camera::set_projection_mode(const ProjectionMode projection_mode)
 
 void Camera::set_rotate_delta(const glm::vec2& delta, float dt)
 {
-    m_rotation.x += -delta.y * dt * 10;
-    m_rotation.y += -delta.x * dt * 10;
+    m_rotation.x -= delta.y * dt * 22*6*3;
+    m_rotation.y -= delta.x * dt * 22*6*3;
     if (m_rotation.x >= 90.f) m_rotation.x = 90.f;
     if (m_rotation.x <= -90.f) m_rotation.x = -90.f;
     update_view_matrix();
