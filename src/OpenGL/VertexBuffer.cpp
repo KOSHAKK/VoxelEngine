@@ -3,7 +3,7 @@
 #include "common/Log.hpp"
 
 
-#include <glad/glad.h>
+#include <glad/gl.h>
 
 
     constexpr unsigned int shader_data_type_to_components_count(const ShaderDataType type)

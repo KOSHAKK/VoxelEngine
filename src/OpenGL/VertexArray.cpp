@@ -2,7 +2,7 @@
 
 #include "common/Log.hpp"
 
-#include <glad/glad.h>
+#include <glad/gl.h>
 
     
     VertexArray::VertexArray()

@@ -1,5 +1,5 @@
 #include "IndexBuffer.hpp"
-#include <glad/glad.h>
+#include <glad/gl.h>
 
 
     constexpr GLenum usage_to_GLenum(const VertexBuffer::EUsage usage)

@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.13 FATAL_ERROR)
 
+cmake_policy(SET CMP0091 NEW)
+
+
 set(PROJECT_NAME VoxelEngine)
 project(${PROJECT_NAME})
 
@@ -51,87 +54,57 @@ add_executable(${PROJECT_NAME}
 	
 	src/Resources/stb_image.hpp
 
+	src/bindings/imgui_impl_glfw.cpp
+    src/bindings/imgui_impl_glfw.h
+    src/bindings/imgui_impl_opengl3.cpp
+    src/bindings/imgui_impl_opengl3.h
+    src/bindings/imgui_impl_opengl3_loader.h
+
 )
 
-target_include_directories(${PROJECT_NAME} PUBLIC src)
+# if (MSVC)
+    # target_compile_options(GLFWPP INTERFACE /W0)
+# else()
+    # target_compile_options(GLFWPP INTERFACE -w)
+# endif()
 
+
+target_include_directories(${PROJECT_NAME} PUBLIC src)
 
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
 
-
-add_subdirectory(external/glad)
-target_link_libraries(${PROJECT_NAME} PRIVATE glad)
-
-add_subdirectory(external/spdlog)
-target_link_libraries(${PROJECT_NAME} PRIVATE spdlog)
-
-include_directories(external/glm)
-
-
 set(GLFWPP_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 add_subdirectory("external/glfwpp")
 target_link_libraries(${PROJECT_NAME} PRIVATE GLFWPP)
 
-if (MSVC)
-    target_compile_options(GLFWPP INTERFACE /W0)
-else()
-    target_compile_options(GLFWPP INTERFACE -w)
-endif()
+find_package(glad REQUIRED)
+target_link_libraries(${PROJECT_NAME} PRIVATE glad::glad)
+
+# find_package(glfw3 REQUIRED)
+# target_link_libraries(${PROJECT_NAME} PRIVATE glfw)
+
+find_package(spdlog REQUIRED)
+target_link_libraries(${PROJECT_NAME} PRIVATE spdlog::spdlog)
+
+find_package(glm REQUIRED)
+target_link_libraries(${PROJECT_NAME} PRIVATE glm::glm)
+
+find_package(imgui REQUIRED)
+target_link_libraries(${PROJECT_NAME} PRIVATE imgui::imgui)
+
+find_package(Jolt REQUIRED)
+target_link_libraries(${PROJECT_NAME} PRIVATE Jolt::Jolt)
 
 
-set(IMGUI_INCLUDES
-	external/imgui/imgui.h
-	external/imgui/backends/imgui_impl_glfw.h
-	external/imgui/backends/imgui_impl_opengl3.h
-)
-
-set(IMGUI_SOURCES
-	external/imgui/imgui.cpp
-	external/imgui/backends/imgui_impl_glfw.cpp
-	external/imgui/backends/imgui_impl_opengl3.cpp
-	external/imgui/imgui_demo.cpp
-	external/imgui/imgui_tables.cpp
-	external/imgui/imgui_widgets.cpp
-	external/imgui/imgui_draw.cpp
-)
-
-add_library(ImGui STATIC
-	${IMGUI_INCLUDES}
-	${IMGUI_SOURCES}
-)
-
-
-target_include_directories(ImGui PUBLIC external)
-target_include_directories(ImGui PUBLIC external/imgui)
-target_link_libraries(ImGui PRIVATE glad glfw)
-
-target_link_libraries(${PROJECT_NAME} PRIVATE ImGui)
-
-
-#jolt
-
-set(JOLT_DIR ${CMAKE_SOURCE_DIR}/external/JoltPhysics)
-set(JOLT_INCLUDE_DIR ${JOLT_DIR})
-set(JOLT_LIB_DIR ${JOLT_DIR}/Build/VS2022_CL)
-
-target_include_directories(${PROJECT_NAME} PRIVATE
-   ${JOLT_INCLUDE_DIR}
-)
-
-target_link_libraries(${PROJECT_NAME} PRIVATE
-    debug     ${JOLT_LIB_DIR}/Debug/Jolt.lib
-    optimized ${JOLT_LIB_DIR}/Release/Jolt.lib
-)
-
-target_compile_definitions(${PROJECT_NAME} PRIVATE
-    JPH_DEBUG_RENDERER
-	JPH_FLOATING_POINT_EXCEPTIONS_ENABLED
-	JPH_PROFILE_ENABLED
-	JPH_OBJECT_STREAM
-)
+# target_compile_definitions(${PROJECT_NAME} PRIVATE
+    # JPH_DEBUG_RENDERER
+	# JPH_FLOATING_POINT_EXCEPTIONS_ENABLED
+	# JPH_PROFILE_ENABLED
+	# JPH_OBJECT_STREAM
+# )
 
 
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${PROJECT_NAME})

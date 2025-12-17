@@ -8,7 +8,7 @@
 #include <OpenGL/ShaderProgram.hpp>
 
 
-#include <imgui/imgui.h>
+#include <imgui.h>
 
 using shaderMap = std::unordered_map<std::string, std::shared_ptr<ShaderProgram>>;
 using textureMap = std::unordered_map<std::string, std::shared_ptr<Texture2D>>;

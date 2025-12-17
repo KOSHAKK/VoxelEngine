@@ -1,0 +1,19 @@
+{
+    "version": 4,
+    "configurePresets": [
+        {
+            "name": "conan-deb",
+            "binaryDir": "build",
+            "cacheVariables": {
+                "CMAKE_TOOLCHAIN_FILE": "build/generators/conan_toolchain.cmake",
+                "CMAKE_PREFIX_PATH": "build/generators"
+            }
+        }
+    ],
+    "vendor": {
+        "conan": {}
+    },
+    "include": [
+        "build/generators/CMakePresets.json"
+    ]
+}

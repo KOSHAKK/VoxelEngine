@@ -1,6 +1,6 @@
 ﻿#include <iostream>
 
-#include <glad/glad.h>
+#include <glad/gl.h>
 #include <glfwpp/glfwpp.h>
 
 
@@ -24,7 +24,6 @@
 #include <Render/Camera.hpp>
 
 #include <Object/LightSource.hpp>
-
 
 #include <glm/gtc/quaternion.hpp>
 
@@ -121,7 +120,7 @@ int main(const int argc, const char** argv) try
 
     glfw::makeContextCurrent(pWindow);
 
-    if (!gladLoadGL())
+    if (!gladLoadGL(glfwGetProcAddress))
     {
         LOG_CRITICAL("Can't load GLAD!");
     }

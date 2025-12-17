@@ -1,12 +1,13 @@
-﻿#include <glad/glad.h>                  
+﻿#include <glad/gl.h>                  
 #include <GLFW/glfw3.h>                 
 
-#include <imgui/imgui.h>
-#include <imgui/backends/imgui_impl_glfw.h>
-#include <imgui/backends/imgui_impl_opengl3.h>
+#include <imgui.h>
 
 #include "ImGuiWrapper.hpp"
 
+
+#include <bindings/imgui_impl_glfw.h>
+#include <bindings/imgui_impl_opengl3.h>
 
 #include <Resources/ResourceManager.hpp>
 
