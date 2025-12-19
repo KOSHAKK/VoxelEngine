@@ -30,6 +30,9 @@ add_executable(${PROJECT_NAME}
 	src/Object/LightSource.hpp
 	src/Object/LightSource.cpp
 	
+	src/Object/Mesh.cpp
+	src/Object/Mesh.hpp
+	
 	src/common/ImGuiWrapper.cpp
 	src/common/ImGuiWrapper.hpp
 	
@@ -46,6 +49,9 @@ add_executable(${PROJECT_NAME}
 	src/Render/Texture2D.cpp
 	src/Render/Texture2D.hpp
 	
+	src/Render/VoxelRenderer.cpp
+	src/Render/VoxelRenderer.hpp
+	
 	src/Physics/PhysicsEngine.cpp
 	src/Physics/PhysicsEngine.hpp
 
@@ -59,6 +65,12 @@ add_executable(${PROJECT_NAME}
     src/bindings/imgui_impl_opengl3.cpp
     src/bindings/imgui_impl_opengl3.h
     src/bindings/imgui_impl_opengl3_loader.h
+	
+    src/Voxel/Chunk.cpp
+    src/Voxel/Chunk.hpp
+	
+    src/Voxel/Voxel.cpp
+    src/Voxel/Voxel.hpp
 
 )
 

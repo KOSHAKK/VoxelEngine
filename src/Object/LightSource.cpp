@@ -9,7 +9,7 @@ LightSource::LightSource(const glm::vec3& position, const glm::vec3& scale, cons
 
 void LightSource::draw(std::shared_ptr<ShaderProgram> shader_program, const Camera& camera)
 {
-	m_cube.draw(shader_program, camera, m_color);
+	m_cube.draw(shader_program, camera);
 }
 
 void LightSource::set_position(const glm::vec3& position)

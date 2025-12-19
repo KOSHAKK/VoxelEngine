@@ -7,119 +7,13 @@
 
 #include <Resources/ResourceManager.hpp>
 
+
 Block::Block(const std::string& texture_name, const glm::vec3& position, const glm::vec3& scale, const glm::vec3& rotation)
     : m_texture_name(texture_name)
 {
-    GLfloat point[] = {
-    -1.0f, -1.f, -1.f,
-    -1.0f,  1.f, -1.f,
-    -1.0f,  1.f,  1.f,
-    -1.0f, -1.f,  1.f,
+    m_chunk = std::make_shared<Chunk>();
+    m_mesh = m_renderer.render(m_chunk);
     
-    // BACK
-     1.0f, -1.f, -1.f,
-     1.0f,  1.f, -1.f,
-     1.0f,  1.f,  1.f,
-     1.0f, -1.f,  1.f,
-    
-     // RIGHT
-     -1.0f,  1.f, -1.f,
-      1.0f,  1.f, -1.f,
-      1.0f,  1.f,  1.f,
-     -1.0f,  1.f,  1.f,
-    
-     // LEFT
-     -1.0f, -1.f, -1.f,
-      1.0f, -1.f, -1.f,
-      1.0f, -1.f,  1.f,
-     -1.0f, -1.f,  1.f,
-    
-     // TOP
-     -1.0f, -1.f,  1.f,
-     -1.0f,  1.f,  1.f,
-      1.0f,  1.f,  1.f,
-      1.0f, -1.f,  1.f,
-    
-      // BOTTOM
-      -1.0f, -1.f, -1.f,
-      -1.0f,  1.f, -1.f,
-       1.0f,  1.f, -1.f,
-       1.0f, -1.f, -1.f,
-    };
-
-    GLfloat texture_coords[] = {
-            0.f, 0.f,
-            1.f, 0.f,
-            1.f, 1.f,
-            0.f, 1.f,
-            
-            
-            1.f, 0.f,
-            0.f, 0.f,
-            0.f, 1.f,
-            1.f, 1.f,
-            
-            
-            0.f, 0.f,
-            1.f, 0.f,
-            1.f, 1.f,
-            0.f, 1.f,
-            
-            
-            1.f, 0.f,
-            0.f, 0.f,
-            0.f, 1.f,
-            1.f, 1.f,
-            
-            
-            0.f, 0.f,
-            1.f, 0.f,
-            1.f, 1.f,
-            0.f, 1.f,
-            
-            
-            0.f, 1.f,
-            1.f, 1.f,
-            1.f, 0.f,
-            0.f, 0.f,
-
-        //           
-        //1.0f, 0.0f,
-        //0.0f, 1.0f,
-        //1.0f, 1.0f,
-        //0.5f, 0.2f,
-    };
-
-    GLuint indices[] = {
-        0,   1,  2,  2,  3,  0, // front
-        4,   5,  6,  6,  7,  4, // back
-        8,   9, 10, 10, 11,  8, // right
-        12, 13, 14, 14, 15, 12, // left
-        16, 17, 18, 18, 19, 16, // top
-        20, 21, 22, 22, 23, 20  // bottom
-    };
-
-    BufferLayout buffer_layout_1vec3
-    {
-        ShaderDataType::Float3,
-    };
-
-    BufferLayout buffer_layout_1vec2
-    {
-        ShaderDataType::Float2,
-    };
-
-    m_vbo_point = new VertexBuffer(point, sizeof(point), buffer_layout_1vec3);
-    m_vbo_texture = new VertexBuffer(texture_coords, sizeof(texture_coords), buffer_layout_1vec2);
-
-
-    m_ebo = new IndexBuffer(indices, sizeof(indices));
-
-    m_vao.add_vertex_buffer(*m_vbo_point);
-    m_vao.add_vertex_buffer(*m_vbo_texture);
-    m_vao.set_index_buffer(*m_ebo);
-
-
 	set_scale(scale);
     set_position(position);
 	set_rotation(rotation);
@@ -127,47 +21,24 @@ Block::Block(const std::string& texture_name, const glm::vec3& position, const g
 
 Block::~Block()
 {
-	delete m_vbo_point;
-	delete m_vbo_texture;
-	delete m_ebo;
+
 }
 
-
-void Block::draw(const std::shared_ptr<ShaderProgram> shader, const Camera& camera, const glm::vec3& color) const
+void Block::draw(const std::shared_ptr<ShaderProgram> shader, const Camera& camera) const
 {
+    glm::mat4 model_matrix = m_pos_matrix * m_rotate_matrix * m_scale_matrix;
+
     shader->bind();
+    shader->set_matrix4("model", model_matrix);
+    shader->set_matrix4("projview", camera.get_projection_matrix() * camera.get_view_matrix());
+    ResourceManager::get_texture(m_texture_name)->bind();
 
-
-	glm::mat4 model_matrix = m_pos_matrix * m_rotate_matrix * m_scale_matrix;
-    glm::mat4 projection_view_matrix = camera.get_projection_matrix() * camera.get_view_matrix();
-
-	glm::mat4 MVP = projection_view_matrix * model_matrix;
-
-    shader->set_matrix4("MVP", MVP);
-
-    
-    m_vao.bind();
-
-
-    if (m_texture_name != "__[EMPTY]")
-    {
-        glActiveTexture(GL_TEXTURE0);
-        ResourceManager::get_texture(m_texture_name)->bind();
-
-        shader->set_int("tex", 0);
+    if (ImGuiWrapper::draw_line) {
+        m_mesh->draw(GL_LINES);
     }
-    else 
-    {
-        shader->set_vec3("color", color);
+    else {
+        m_mesh->draw(GL_TRIANGLES);
     }
-
-
-    if (!ImGuiWrapper::draw_line)
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	else
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
-    glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(m_ebo->get_count()), GL_UNSIGNED_INT, nullptr);
 }
 
 void Block::set_scale(const glm::vec3& scale)
@@ -186,6 +57,7 @@ void Block::set_position(const glm::vec3& position)
                              0,           0,           1,           0,
                              position[0], position[1], position[2], 1
     );
+    m_pos = position;
 }
 
 void Block::set_rotation(const glm::vec3& rotation)

@@ -22,7 +22,7 @@ public:
     glm::mat4 get_view_matrix() const { return m_view_matrix; }
     glm::mat4 get_projection_matrix() const { return m_projection_matrix; }
 
-    glm::vec3 get_position() { return m_position; }
+    glm::vec3 get_position() const{ return m_position; }
 
     void set_rotate_delta(const glm::vec2& delta, float dt);
 

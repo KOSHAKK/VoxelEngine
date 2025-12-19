@@ -25,6 +25,11 @@
 
 #include <Object/LightSource.hpp>
 
+#include <Voxel/Chunk.hpp>
+#include <Render/VoxelRenderer.hpp>
+#include <Object/Mesh.hpp>
+
+
 #include <glm/gtc/quaternion.hpp>
 
 using namespace JPH::literals;
@@ -96,6 +101,8 @@ void glfwMousePosCallback(glfw::Window& window_, double xpos, double ypos)
 
 int main(const int argc, const char** argv) try
 {
+    Chunk s;
+
     ResourceManager::init(argv[0]);
     PhysicsEngine::init();
 
@@ -125,6 +132,7 @@ int main(const int argc, const char** argv) try
         LOG_CRITICAL("Can't load GLAD!");
     }
     
+    ImGuiWrapper::init_imgui(pWindow);
 
     LOG_INFO("Renderer: {}", reinterpret_cast<const char*>(glGetString(GL_RENDERER)));
     LOG_INFO("OpenGL version: {}", reinterpret_cast<const char*>(glGetString(GL_VERSION)));
@@ -132,32 +140,15 @@ int main(const int argc, const char** argv) try
 
     glEnable(GL_DEPTH_TEST);
 
-    auto proj = ResourceManager::load_shader_program("basic_shader", "res/Shaders/basic.vert", "res/Shaders/basic.frag");
-    auto light_source_proj = ResourceManager::load_shader_program("light_source_shader", "res/Shaders/light_source.vert", "res/Shaders/light_source.frag");
-
     Camera camera;
-    camera.set_position({ 0.f, 4.f, 8.f });
+    camera.set_position({ 8.f, 8.f, 24.f });
 
 
+    ResourceManager::load_texture("debug_texture", "res/Textures/block.png");
+    auto shared = ResourceManager::load_shader_program("voxel_shared", "res/Shaders/main.glslv", "res/Shaders/main.glslf");
 
 
-    ResourceManager::load_texture("stone_brick_texture", "res/Textures/stone_brick.png");
-    ResourceManager::load_texture("grass_texture", "res/Textures/grass.png");
-
-    Block floor("grass_texture", { 0.f, 0.f, 0.f }, {100.f, 1.f, 100.f});
-    Block b3("stone_brick_texture", { 2.0f, 1.0f, -1.0f });
-
-    Block b1("stone_brick_texture");
-
-    LightSource light_source({ 5.f,5.f,5.f }, { 0.1f, 0.1f, 0.1f });
-
-
-    PhysicsEngine::add_object({ JPH::RVec3(0.0_r, 8.0_r, 0.0_r), JPH::Vec3(1.0f, 1.0f, 1.0f), JPH::EMotionType::Dynamic }, "cube1");
-    PhysicsEngine::add_object({ JPH::RVec3(0.8_r, 12.0_r, 0.8_r), JPH::Vec3(1.0f, 1.0f, 1.0f), JPH::EMotionType::Dynamic }, "cube2");
-    PhysicsEngine::add_object({ JPH::RVec3(0.0_r, 0.0_r, 0.0_r), JPH::Vec3(100.0f, 1.0f, 100.0f), JPH::EMotionType::Static }, "floor");
-
-
-    ImGuiWrapper::init_imgui(pWindow);
+    Block mesh("debug_texture", { 0.f, 0.f, 0.f }, {1.f, 1.f, 1.f});
 
     //glfw::swapInterval(1);
     while (!glfwWindowShouldClose(pWindow))
@@ -166,7 +157,6 @@ int main(const int argc, const char** argv) try
         double currentTime = glfwGetTime();
         float deltaTime = float(currentTime - lastTime);
         lastTime = currentTime;
-
 
         if (Input::IsKeyPressed(KeyCode::KEY_W)) {
             camera.move_forward(5.f, deltaTime);
@@ -192,82 +182,19 @@ int main(const int argc, const char** argv) try
 
         PhysicsEngine::update(deltaTime);
 
-        auto cube_id = PhysicsEngine::get_object("cube1");
-        JPH::Vec3 position = PhysicsEngine::body_interface->GetPosition(cube_id);
-        b3.set_position({ position.GetX(), position.GetY(), position.GetZ() });
-        JPH::Quat q = PhysicsEngine::body_interface->GetRotation(cube_id);
-
-        glm::quat gq(q.GetW(), q.GetX(), q.GetY(), q.GetZ());
-        glm::mat4 R = glm::mat4_cast(gq);
-        b3.set_rotation_matrix(R);
-
-
-
-
-        auto cube2_id = PhysicsEngine::get_object("cube2");
-        JPH::Vec3 position2 = PhysicsEngine::body_interface->GetPosition(cube2_id);
-        b1.set_position({ position2.GetX(), position2.GetY(), position2.GetZ() });
-        JPH::Quat q2 = PhysicsEngine::body_interface->GetRotation(cube2_id);
-
-        glm::quat gq2(q2.GetW(), q2.GetX(), q2.GetY(), q2.GetZ());
-        glm::mat4 R2 = glm::mat4_cast(gq2);
-        b1.set_rotation_matrix(R2);
-
-
-
-        light_source.set_position({ ImGuiWrapper::debug_light_position[0],ImGuiWrapper::debug_light_position[1], ImGuiWrapper::debug_light_position[2] });
-        light_source.set_scale({ ImGuiWrapper::debug_light_scale[0],ImGuiWrapper::debug_light_scale[1], ImGuiWrapper::debug_light_scale[2] });
-
-
-
-        JPH::Vec3 vel = PhysicsEngine::body_interface->GetLinearVelocity(cube_id);
-
-        if (Input::IsKeyPressed(KeyCode::KEY_UP)) {
-            vel.SetZ(-ImGuiWrapper::push_strength);
-            PhysicsEngine::body_interface->SetLinearVelocity(cube_id, vel);
-        }
-        if (Input::IsKeyPressed(KeyCode::KEY_DOWN)) {
-            vel.SetZ(ImGuiWrapper::push_strength);
-            PhysicsEngine::body_interface->SetLinearVelocity(cube_id, vel);
-        }
-        if (Input::IsKeyPressed(KeyCode::KEY_LEFT)) {
-            vel.SetX(-ImGuiWrapper::push_strength);
-            PhysicsEngine::body_interface->SetLinearVelocity(cube_id, vel);
-        }
-        if (Input::IsKeyPressed(KeyCode::KEY_RIGHT)) {
-            vel.SetX(ImGuiWrapper::push_strength);
-            PhysicsEngine::body_interface->SetLinearVelocity(cube_id, vel);
-        }
-        if (Input::IsKeyPressed(KeyCode::KEY_SPACE)) {
-            vel.SetY(3.0f);
-            PhysicsEngine::body_interface->SetLinearVelocity(cube_id, vel);
-        }
 
 
         /* Render here */
         glClearColor(ImGuiWrapper::clear_color[0], ImGuiWrapper::clear_color[1], ImGuiWrapper::clear_color[2], 1);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        
-        proj->bind();
-		proj->set_float("time", static_cast<float>(glfw::getTime()));
 
 
-        b1.draw(proj, camera);
-        b3.draw(proj, camera);
-        floor.draw(proj, camera);
-
-        light_source.draw(light_source_proj, camera);
+        mesh.set_position({ImGuiWrapper::debug_light_position[0], ImGuiWrapper::debug_light_position[1], ImGuiWrapper::debug_light_position[2]});
+        mesh.set_scale({ImGuiWrapper::debug_light_scale[0], ImGuiWrapper::debug_light_scale[1], ImGuiWrapper::debug_light_scale[2]});
 
 
-
-#if 0
-        b1.set_position({ ImGuiWrapper::debug_block_position[0], ImGuiWrapper::debug_block_position[1], ImGuiWrapper::debug_block_position[2] });
-        b1.set_scale({ ImGuiWrapper::debug_block_scale[0], ImGuiWrapper::debug_block_scale[1], ImGuiWrapper::debug_block_scale[2] });
-		b1.set_rotation({ ImGuiWrapper::debug_block_rotation[0], ImGuiWrapper::debug_block_rotation[1], ImGuiWrapper::debug_block_rotation[2] });
-#endif
-
-		//camera.set_position({ ImGuiWrapper::debug_camera_position[0], ImGuiWrapper::debug_camera_position[1], ImGuiWrapper::debug_camera_position[2] });
-		//camera.set_rotation({ ImGuiWrapper::debug_camera_rotation[0], ImGuiWrapper::debug_camera_rotation[1], ImGuiWrapper::debug_camera_rotation[2] });
+        mesh.draw(shared, camera);
+         
 
         if (is_mouse_moving && Input::IsMouseButtonPressed(MouseButton::MOUSE_BUTTON_2)) {
             camera.set_rotate_delta(mouse_delta, deltaTime);
