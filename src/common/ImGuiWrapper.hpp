@@ -19,5 +19,5 @@ namespace ImGuiWrapper
 	inline bool perspective_mode = true;
 	inline bool draw_line = false;
 
-	inline float push_strength = 1.f;
+	inline float push_strength = 20.f;
 }

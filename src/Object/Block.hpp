@@ -15,7 +15,7 @@
 
 
 #include <Voxel/Chunk.hpp>
-#include <Render/VoxelRenderer.hpp>
+#include <Render/VoxelMesher.hpp>
 #include <Object/Mesh.hpp>
 
 class Block 
@@ -34,7 +34,6 @@ public:
     void set_rotation_matrix(const glm::mat4& rot_matrix);
 
 private:
-    VoxelRenderer m_renderer;
     std::shared_ptr<Chunk> m_chunk;
     std::shared_ptr<Mesh> m_mesh;
 

@@ -26,26 +26,27 @@
 #include <Object/LightSource.hpp>
 
 #include <Voxel/Chunk.hpp>
-#include <Render/VoxelRenderer.hpp>
+#include <Render/VoxelMesher.hpp>
 #include <Object/Mesh.hpp>
 
+#include <Voxel/World.hpp>
 
 #include <glm/gtc/quaternion.hpp>
 
 using namespace JPH::literals;
 
 
-int g_windowSizeX = 640*2;
-int g_windowSizeY = 480*2-150;
+static int g_windowSizeX = 640*2;
+static int g_windowSizeY = 480*2-150;
 
-void glfwWindowSizeCallback(GLFWwindow* pWindow, int width, int height)
+static void glfwWindowSizeCallback(GLFWwindow* pWindow, int width, int height)
 {
     g_windowSizeX = width;
     g_windowSizeY = height;
     glViewport(0, 0, g_windowSizeX, g_windowSizeY);
 }
 
-void glfwKeyCallback(glfw::Window& pWindow, glfw::KeyCode keyCode_, int scanCode_, glfw::KeyState state_, glfw::ModifierKeyBit modifiers_)
+static void glfwKeyCallback(glfw::Window& pWindow, glfw::KeyCode keyCode_, int scanCode_, glfw::KeyState state_, glfw::ModifierKeyBit modifiers_)
 {
     if (state_ == glfw::KeyState::Press) {
         Input::PressKey(static_cast<KeyCode>(static_cast<int>(keyCode_)));
@@ -67,16 +68,6 @@ void glfwMouseButtonCallback(glfw::Window& window_, glfw::MouseButton button_, g
     else if (state_ == glfw::MouseButtonState::Release) {
         Input::ReleaseMouseButton(static_cast<MouseButton>(static_cast<int>(button_)));
     }
-
-#if 0
-    if (Input::IsMouseButtonPressed(MouseButton::MOUSE_BUTTON_2)) {
-       glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    }
-    else {
-       glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
-    }
-#endif
-
 }
 
 bool is_mouse_moving = false;
@@ -143,12 +134,14 @@ int main(const int argc, const char** argv) try
     Camera camera;
     camera.set_position({ 8.f, 8.f, 24.f });
 
-
+     
     ResourceManager::load_texture("debug_texture", "res/Textures/block.png");
     auto shared = ResourceManager::load_shader_program("voxel_shared", "res/Shaders/main.glslv", "res/Shaders/main.glslf");
 
 
-    Block mesh("debug_texture", { 0.f, 0.f, 0.f }, {1.f, 1.f, 1.f});
+   // Block mesh("debug_texture", { 0.f, 0.f, 0.f }, {1.f, 1.f, 1.f});
+
+    World w(4, 1, 3, "debug_texture");
 
     //glfw::swapInterval(1);
     while (!glfwWindowShouldClose(pWindow))
@@ -159,24 +152,24 @@ int main(const int argc, const char** argv) try
         lastTime = currentTime;
 
         if (Input::IsKeyPressed(KeyCode::KEY_W)) {
-            camera.move_forward(5.f, deltaTime);
+            camera.move_forward(ImGuiWrapper::push_strength, deltaTime);
         }
         else if (Input::IsKeyPressed(KeyCode::KEY_S)) {
-            camera.move_forward(-5.f, deltaTime);
+            camera.move_forward(-ImGuiWrapper::push_strength, deltaTime);
         }
 
         if (Input::IsKeyPressed(KeyCode::KEY_A)) {
-            camera.move_right(-5.f, deltaTime);
+            camera.move_right(-ImGuiWrapper::push_strength, deltaTime);
         }
         else if (Input::IsKeyPressed(KeyCode::KEY_D)) {
-            camera.move_right(5.f, deltaTime);
+            camera.move_right(ImGuiWrapper::push_strength, deltaTime);
         }
 
         if (Input::IsKeyPressed(KeyCode::KEY_LEFT_SHIFT)) {
-            camera.move_up(5.f, deltaTime);
+            camera.move_up(ImGuiWrapper::push_strength, deltaTime);
         }
         else if (Input::IsKeyPressed(KeyCode::KEY_LEFT_CONTROL)) {
-            camera.move_up(-5.f, deltaTime);
+            camera.move_up(-ImGuiWrapper::push_strength, deltaTime);
         }
 
 
@@ -189,12 +182,14 @@ int main(const int argc, const char** argv) try
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
-        mesh.set_position({ImGuiWrapper::debug_light_position[0], ImGuiWrapper::debug_light_position[1], ImGuiWrapper::debug_light_position[2]});
-        mesh.set_scale({ImGuiWrapper::debug_light_scale[0], ImGuiWrapper::debug_light_scale[1], ImGuiWrapper::debug_light_scale[2]});
+        //mesh.set_position({ImGuiWrapper::debug_light_position[0], ImGuiWrapper::debug_light_position[1], ImGuiWrapper::debug_light_position[2]});
+        //mesh.set_scale({ImGuiWrapper::debug_light_scale[0], ImGuiWrapper::debug_light_scale[1], ImGuiWrapper::debug_light_scale[2]});
 
 
-        mesh.draw(shared, camera);
-         
+        //mesh.draw(shared, camera);
+        
+
+        w.draw(shared, camera);
 
         if (is_mouse_moving && Input::IsMouseButtonPressed(MouseButton::MOUSE_BUTTON_2)) {
             camera.set_rotate_delta(mouse_delta, deltaTime);

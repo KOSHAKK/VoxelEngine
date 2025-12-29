@@ -4,10 +4,12 @@
 
 #include <common/Log.hpp>
 
-Mesh::Mesh(const VertexBuffer& vertex_buffer, const IndexBuffer& index_buffer)
+Mesh::Mesh(std::shared_ptr<VertexBuffer> vertex_buffer, std::shared_ptr<IndexBuffer> index_buffer)
+    : m_vertex_buffer(vertex_buffer),
+      m_index_buffer(index_buffer)
 {
-	m_VAO.add_vertex_buffer(vertex_buffer);
-	m_VAO.set_index_buffer(index_buffer);
+	m_VAO.add_vertex_buffer(*m_vertex_buffer);
+	m_VAO.set_index_buffer(*m_index_buffer);
 }
 
 void Mesh::draw(unsigned int primitive) const

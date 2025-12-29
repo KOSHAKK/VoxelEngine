@@ -49,8 +49,8 @@ add_executable(${PROJECT_NAME}
 	src/Render/Texture2D.cpp
 	src/Render/Texture2D.hpp
 	
-	src/Render/VoxelRenderer.cpp
-	src/Render/VoxelRenderer.hpp
+	src/Render/VoxelMesher.cpp
+	src/Render/VoxelMesher.hpp
 	
 	src/Physics/PhysicsEngine.cpp
 	src/Physics/PhysicsEngine.hpp
@@ -71,7 +71,9 @@ add_executable(${PROJECT_NAME}
 	
     src/Voxel/Voxel.cpp
     src/Voxel/Voxel.hpp
-
+	
+    src/Voxel/World.cpp
+    src/Voxel/World.hpp
 )
 
 # if (MSVC)

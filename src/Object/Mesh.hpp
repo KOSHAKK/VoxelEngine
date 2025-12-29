@@ -4,12 +4,13 @@
 #include <OpenGL/VertexBuffer.hpp>
 #include <OpenGL/IndexBuffer.hpp>
 
+#include <memory>
 
 class Mesh
 {
 public:
-    Mesh(const VertexBuffer& vertex_buffer,
-         const IndexBuffer&  index_buffer);
+    Mesh(std::shared_ptr<VertexBuffer> vertex_buffer,
+         std::shared_ptr<IndexBuffer> index_buffer);
 
     ~Mesh() = default;
 
@@ -19,4 +20,6 @@ public:
 
 public:
 	VertexArray m_VAO;
+    std::shared_ptr<VertexBuffer> m_vertex_buffer;
+    std::shared_ptr<IndexBuffer> m_index_buffer;
 };
