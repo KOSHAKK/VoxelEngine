@@ -12,7 +12,7 @@ Block::Block(const std::string& texture_name, const glm::vec3& position, const g
     : m_texture_name(texture_name)
 {
     m_chunk = std::make_shared<Chunk>();
-    m_mesh = VoxelMesher::build_mesh(m_chunk);
+    //m_mesh = VoxelMesher::build_mesh(m_chunk);
     
 	set_scale(scale);
     set_position(position);

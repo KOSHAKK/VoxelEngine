@@ -3,8 +3,11 @@
 #include <glm/glm.hpp>
 #include <glm/trigonometric.hpp>
 #include <glm/ext/matrix_transform.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 #include <common/Log.hpp>
+
+#include <common/ImGuiWrapper.hpp>
 
 Camera::Camera(const glm::vec3& position,
     const glm::vec3& rotation,
@@ -54,17 +57,26 @@ void Camera::update_view_matrix()
 
 void Camera::update_projection_matrix()
 {
+    
+
     if (m_projection_mode == ProjectionMode::Perspective)
     {
-        float r = 0.1f;
-        float t = 0.1f;
-        float f = 10000;
-        float n = 0.1f;
-        m_projection_matrix = glm::mat4(n / r, 0, 0, 0,
-            0, n / t, 0, 0,
-            0, 0, (-f - n) / (f - n), -1,
-            0, 0, -2 * f * n / (f - n), 0);
-    }
+        //float r = 0.1f;
+        //float t = 0.1f;
+        //float f = 10000;
+        //float n = 0.1f;
+        //m_projection_matrix = glm::mat4(n / r, 0, 0, 0,
+        //    0, n / t, 0, 0,
+        //    0, 0, (-f - n) / (f - n), -1,
+        //    0, 0, -2 * f * n / (f - n), 0);
+        m_projection_matrix = glm::perspective(
+            glm::radians(ImGuiWrapper::camera_fov), 
+            ImGuiWrapper::aspect, 
+            0.1f,
+            10000.f
+        );
+          
+    } 
     else
     {
         float r = 2;
@@ -105,7 +117,7 @@ void Camera::set_projection_mode(const ProjectionMode projection_mode)
 
 void Camera::set_rotate_delta(const glm::vec2& delta, float dt)
 {
-    m_rotation.x -= delta.y * dt * 22*6*3;
+    m_rotation.x -= delta.y * dt * 22*6*3 * ImGuiWrapper::aspect;
     m_rotation.y -= delta.x * dt * 22*6*3;
     if (m_rotation.x >= 90.f) m_rotation.x = 90.f;
     if (m_rotation.x <= -90.f) m_rotation.x = -90.f;
@@ -126,6 +138,6 @@ void Camera::move_right(const float delta, const float dt)
 
 void Camera::move_up(const float delta, const float dt)
 {
-    m_position += m_up * delta * dt;
+    m_position += s_world_up * delta * dt;
     update_view_matrix();
 }

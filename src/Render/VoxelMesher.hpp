@@ -12,5 +12,5 @@ class VoxelMesher
 public:
 	VoxelMesher() = delete;
 
-	static std::shared_ptr<Mesh> build_mesh(std::shared_ptr<Chunk> chunk);
+	static std::shared_ptr<Mesh> build_mesh(std::shared_ptr<Chunk> chunk, const std::vector<std::shared_ptr<Chunk>>& chunks);
 };

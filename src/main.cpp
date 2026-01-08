@@ -33,16 +33,22 @@
 
 #include <glm/gtc/quaternion.hpp>
 
+#include <chrono>
+
+
 using namespace JPH::literals;
 
 
 static int g_windowSizeX = 640*2;
 static int g_windowSizeY = 480*2-150;
 
+float ascpect = static_cast<float>(g_windowSizeX) / static_cast<float>(g_windowSizeY);
+
 static void glfwWindowSizeCallback(GLFWwindow* pWindow, int width, int height)
 {
     g_windowSizeX = width;
     g_windowSizeY = height;
+    ascpect =  static_cast<float>(g_windowSizeX) / static_cast<float>(g_windowSizeY);
     glViewport(0, 0, g_windowSizeX, g_windowSizeY);
 }
 
@@ -92,8 +98,6 @@ void glfwMousePosCallback(glfw::Window& window_, double xpos, double ypos)
 
 int main(const int argc, const char** argv) try
 {
-    Chunk s;
-
     ResourceManager::init(argv[0]);
     PhysicsEngine::init();
 
@@ -141,11 +145,20 @@ int main(const int argc, const char** argv) try
 
    // Block mesh("debug_texture", { 0.f, 0.f, 0.f }, {1.f, 1.f, 1.f});
 
-    World w(4, 1, 3, "debug_texture");
+    ImGuiWrapper::aspect = ascpect;
+
+    const auto start{ std::chrono::steady_clock::now() };
+    
+    std::shared_ptr<World> w = std::make_shared<World>(2, 1, 2, "debug_texture");
+
+    const auto finish{ std::chrono::steady_clock::now() };
+    const std::chrono::duration<double> elapsed_seconds{ finish - start };
+    LOG_INFO("World has been created for {}s", elapsed_seconds.count());
 
     //glfw::swapInterval(1);
     while (!glfwWindowShouldClose(pWindow))
     {
+        ImGuiWrapper::aspect = ascpect;
         static double lastTime = glfwGetTime();
         double currentTime = glfwGetTime();
         float deltaTime = float(currentTime - lastTime);
@@ -176,6 +189,9 @@ int main(const int argc, const char** argv) try
         PhysicsEngine::update(deltaTime);
 
 
+        ImGuiWrapper::camera_pos_string = std::to_string((int)camera.get_position().x) + " " + std::to_string((int)camera.get_position().y) + " " + std::to_string((int)camera.get_position().z);
+
+
 
         /* Render here */
         glClearColor(ImGuiWrapper::clear_color[0], ImGuiWrapper::clear_color[1], ImGuiWrapper::clear_color[2], 1);
@@ -187,9 +203,12 @@ int main(const int argc, const char** argv) try
 
 
         //mesh.draw(shared, camera);
-        
+        shared->bind();
+        shared->set_float("aspect_ratio", ascpect);
 
-        w.draw(shared, camera);
+
+
+        w->draw(shared, camera);
 
         if (is_mouse_moving && Input::IsMouseButtonPressed(MouseButton::MOUSE_BUTTON_2)) {
             camera.set_rotate_delta(mouse_delta, deltaTime);

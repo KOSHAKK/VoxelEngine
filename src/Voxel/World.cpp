@@ -1,13 +1,16 @@
 #include "World.hpp"
 
+#include <iostream>
+
 #include <Resources/ResourceManager.hpp>
 
 #include <common/ImGuiWrapper.hpp>
 
 #include <glm/gtc/matrix_transform.hpp>
 
-static inline std::size_t idx(int x, int y, int z, glm::vec3 world_size) {
-	return static_cast<std::size_t>((x + world_size.x * (y + world_size.y * z)));
+
+static inline int idx(int x, int y, int z, glm::vec3 world_size) {
+	return static_cast<int>((x + world_size.x * (y + world_size.y * z)));
 }
 
 World::World(std::size_t x_size, std::size_t y_size, std::size_t z_size, std::string_view texture_atlas_name)
@@ -21,11 +24,42 @@ World::World(std::size_t x_size, std::size_t y_size, std::size_t z_size, std::st
 			for (std::size_t x = 0; x < m_world_size.x; x++) {
 				auto index = idx(x, y, z, m_world_size);
 				m_chunks[index] = std::make_shared<Chunk>();
-				m_meshes[index] = VoxelMesher::build_mesh(m_chunks[index]);
 				m_chunks[index]->m_pos = { x,y,z };
 			}
 		}
 	}
+
+	for (std::size_t y = 0; y < m_world_size.y; y++) {
+		for (std::size_t z = 0; z < m_world_size.z; z++) {
+			for (std::size_t x = 0; x < m_world_size.x; x++) {
+
+
+
+				for (std::size_t i = 0; i < m_chunks.size(); ++i) {
+					auto chunk = m_chunks[i];
+
+					std::vector<std::shared_ptr<Chunk>> closes(27, nullptr);
+
+					for (std::size_t j = 0; j < m_chunks.size(); ++j) {
+						auto other = m_chunks[j];
+
+						int ox = other->m_pos.x - chunk->m_pos.x;
+						int oy = other->m_pos.y - chunk->m_pos.y;
+						int oz = other->m_pos.z - chunk->m_pos.z;
+
+						if (std::abs(ox) > 1 || std::abs(oy) > 1 || std::abs(oz) > 1)
+							continue;
+
+						ox++; oy++; oz++; // 0..2
+						closes[(oy * 3 + oz) * 3 + ox] = other;
+					}
+
+					m_meshes[i] = VoxelMesher::build_mesh(chunk, closes);
+				}
+
+			}
+		}
+	} 
 }
 
 void World::draw(const std::shared_ptr<ShaderProgram> shader, const Camera& camera) const
@@ -40,6 +74,9 @@ void World::draw(const std::shared_ptr<ShaderProgram> shader, const Camera& came
 					y * Chunk::CHUNK_Y,
 					z * Chunk::CHUNK_Z
 				};
+				 
+				
+
 
 				glm::mat4 model_matrix = glm::translate(glm::mat4(1.f), chunkPos);
 				

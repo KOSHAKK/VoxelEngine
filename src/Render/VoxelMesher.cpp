@@ -2,6 +2,10 @@
 
 #include <Voxel/Voxel.hpp>
 
+#include <iostream>
+
+#include <common/ImGuiWrapper.hpp>
+
 struct ChunkVertex
 {
     float x, y, z;  // pos
@@ -9,22 +13,50 @@ struct ChunkVertex
     float l;        // light
 };
 
+static inline int cdiv(int x, int a) { return (x < 0) ? (x / a - 1) : (x / a); }
+static inline int local_neg(int x, int size) { return (x < 0) ? (size + x) : x; }
+static inline int local(int x, int size) { return (x >= size) ? (x - size) : local_neg(x, size); }
 
-static inline bool is_in(int x, int y, int z)
+
+static inline std::shared_ptr<Chunk> get_chunk(
+    int x, int y, int z,
+    const std::vector<std::shared_ptr<Chunk>>& chunks)
 {
-    return x >= 0 && x < static_cast<int>(Chunk::CHUNK_X) &&
-           y >= 0 && y < static_cast<int>(Chunk::CHUNK_Y) &&
-           z >= 0 && z < static_cast<int>(Chunk::CHUNK_Z);
+    if (z == -1) {
+       // std::cout << "123";
+    }
+    int cx = cdiv(x, Chunk::CHUNK_X) + 1; // 0..2
+    int cy = cdiv(y, Chunk::CHUNK_Y) + 1; // 0..2
+    int cz = cdiv(z, Chunk::CHUNK_Z) + 1; // 0..2
+
+    int i = cx + 3 * cz + 9 * cy;             // X fastest, then Z, then Y
+    return chunks[i];
 }
 
-static inline size_t voxel_index(int x, int y, int z)
+static inline bool is_chunk(int x, int y, int z, const std::vector<std::shared_ptr<Chunk>>& chunks)
 {
-    return static_cast<size_t>((y * static_cast<int>(Chunk::CHUNK_Z + z) * static_cast<int>(Chunk::CHUNK_X + x)));
+    auto ch = get_chunk(x, y, z, chunks);
+    return ch != nullptr;
 }
 
-static inline bool is_blocked(std::shared_ptr<Chunk> chunk, int x, int y, int z)
+static inline int voxel(int x, int y, int z, const std::vector<std::shared_ptr<Chunk>>& chunks)
 {
-    return is_in(x, y, z) && chunk->get_id(x, y, z) != 0;
+    int i = (local(y, Chunk::CHUNK_Y) * Chunk::CHUNK_Z + local(z, Chunk::CHUNK_Z)) * Chunk::CHUNK_X + local(x, Chunk::CHUNK_X);
+    auto zz = get_chunk(x, y, z, chunks)->get_voxels()[i].id;
+    return zz;
+}
+
+
+static inline bool is_blocked(std::shared_ptr<Chunk> chunk, int x, int y, int z, const std::vector<std::shared_ptr<Chunk>>& chunks)
+{
+    bool ch = is_chunk(x, y, z, chunks);
+
+    if (ch == false) return false;
+
+    bool vx = voxel(x, y, z, chunks);
+
+
+        return (!ch || vx);
 }
 
 static inline void push_face(std::vector<ChunkVertex>& v,
@@ -49,10 +81,12 @@ static inline void push_face(std::vector<ChunkVertex>& v,
 }
 
 
-std::shared_ptr<Mesh> VoxelMesher::build_mesh(std::shared_ptr<Chunk> chunk)
+std::shared_ptr<Mesh> VoxelMesher::build_mesh(std::shared_ptr<Chunk> chunk, const std::vector<std::shared_ptr<Chunk>>& chunks)
 {
     std::vector<ChunkVertex> verts;
     std::vector<uint32_t> inds;
+
+    //chunks[13] = nullptr;
 
     constexpr float uvsize = 1.0f / 16.0f;
 
@@ -60,6 +94,7 @@ std::shared_ptr<Mesh> VoxelMesher::build_mesh(std::shared_ptr<Chunk> chunk)
         for (int z = 0; z < Chunk::CHUNK_Z; z++)
             for (int x = 0; x < Chunk::CHUNK_X; x++)
             {
+
                 auto id = chunk->get_id(x, y, z);
                 if (!id) continue;
 
@@ -67,12 +102,15 @@ std::shared_ptr<Mesh> VoxelMesher::build_mesh(std::shared_ptr<Chunk> chunk)
                 float v = 1.0f - ((1 + id / 16) * uvsize);
 
                 auto makeV = [](float px, float py, float pz, float uu, float vv, float light) {
-                    return ChunkVertex{ px,py,pz, uu,vv, light };
-                    };
+                    return ChunkVertex{ px ,py,pz, uu,vv, light };
+                };
+
+                
+   
 
 
                 // TOP (+Y)
-                if (!is_blocked(chunk, x, y + 1, z)) {
+                if (!is_blocked(chunk, x, y + 1, z, chunks)) {
                     float l = 1.0f;
                     auto a = makeV(x - 0.5f, y + 0.5f, z - 0.5f, u + uvsize, v, l);
                     auto b = makeV(x - 0.5f, y + 0.5f, z + 0.5f, u + uvsize, v + uvsize, l);
@@ -82,7 +120,7 @@ std::shared_ptr<Mesh> VoxelMesher::build_mesh(std::shared_ptr<Chunk> chunk)
                 }
 
                 // BOTTOM (-Y)
-                if (!is_blocked(chunk, x, y - 1, z)) {
+                if (!is_blocked(chunk, x, y - 1, z, chunks)) {
                     float l = 0.75f;
                     auto a = makeV(x - 0.5f, y - 0.5f, z - 0.5f, u, v, l);
                     auto b = makeV(x + 0.5f, y - 0.5f, z - 0.5f, u + uvsize, v, l);
@@ -92,7 +130,7 @@ std::shared_ptr<Mesh> VoxelMesher::build_mesh(std::shared_ptr<Chunk> chunk)
                 }
 
                 // +X
-                if (!is_blocked(chunk, x + 1, y, z)) {
+                if (!is_blocked(chunk, x + 1, y, z, chunks)) {
                     float l = 0.95f;
                     auto a = makeV(x + 0.5f, y - 0.5f, z - 0.5f, u + uvsize, v, l);
                     auto b = makeV(x + 0.5f, y + 0.5f, z - 0.5f, u + uvsize, v + uvsize, l);
@@ -102,7 +140,7 @@ std::shared_ptr<Mesh> VoxelMesher::build_mesh(std::shared_ptr<Chunk> chunk)
                 }
 
                 // -X
-                if (!is_blocked(chunk, x - 1, y, z)) {
+                if (!is_blocked(chunk, x - 1, y, z, chunks)) {
                     float l = 0.85f;
                     auto a = makeV(x - 0.5f, y - 0.5f, z - 0.5f, u, v, l);
                     auto b = makeV(x - 0.5f, y - 0.5f, z + 0.5f, u + uvsize, v, l);
@@ -112,7 +150,7 @@ std::shared_ptr<Mesh> VoxelMesher::build_mesh(std::shared_ptr<Chunk> chunk)
                 }
 
                 // +Z
-                if (!is_blocked(chunk, x, y, z + 1)) {
+                if (!is_blocked(chunk, x, y, z + 1, chunks)) {
                     float l = 0.9f;
                     auto a = makeV(x - 0.5f, y - 0.5f, z + 0.5f, u, v, l);
                     auto b = makeV(x + 0.5f, y - 0.5f, z + 0.5f, u + uvsize, v, l);
@@ -122,7 +160,7 @@ std::shared_ptr<Mesh> VoxelMesher::build_mesh(std::shared_ptr<Chunk> chunk)
                 }
 
                 // -Z
-                if (!is_blocked(chunk, x, y, z - 1)) {
+                if (!is_blocked(chunk, x, y, z - 1, chunks)) {
                     float l = 0.8f;
                     auto a = makeV(x - 0.5f, y - 0.5f, z - 0.5f, u + uvsize, v, l);
                     auto b = makeV(x + 0.5f, y - 0.5f, z - 0.5f, u, v, l);

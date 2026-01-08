@@ -49,7 +49,10 @@ void ImGuiWrapper::update_imgui()
 	ImGui::DragFloat3("Scale", ImGuiWrapper::debug_light_scale, 0.01f, -1.f, 1.f);
     ImGui::Separator();
 	ImGui::Checkbox("Perspective mode", &ImGuiWrapper::perspective_mode);
+    ImGui::Separator();
+    ImGui::Text("%s", camera_pos_string.c_str());
 	ImGui::DragFloat("Camera speed", &ImGuiWrapper::push_strength, 1.0f, 10.f, 50.f);
+	ImGui::DragFloat("Camera fov", &ImGuiWrapper::camera_fov, 1, 30.f, 120.f);
 
 	ImGui::End();
 

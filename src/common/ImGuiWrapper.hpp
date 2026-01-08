@@ -19,5 +19,10 @@ namespace ImGuiWrapper
 	inline bool perspective_mode = true;
 	inline bool draw_line = false;
 
+	inline float camera_fov = 120.f;
+	inline float aspect;
+
+	inline std::string camera_pos_string;
+
 	inline float push_strength = 20.f;
 }

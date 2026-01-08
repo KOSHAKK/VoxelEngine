@@ -11,6 +11,7 @@ public:
 	Chunk();
 
 	std::uint16_t get_id(int x, int y, int z) const;
+	const std::vector<Voxel>& get_voxels() { return voxels; }
 	bool set_id(int x, int y, int z, std::uint16_t id);
 
 
