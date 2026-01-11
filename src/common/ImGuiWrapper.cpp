@@ -5,6 +5,7 @@
 
 #include "ImGuiWrapper.hpp"
 
+#include <common/Log.hpp>
 
 #include <bindings/imgui_impl_glfw.h>
 #include <bindings/imgui_impl_opengl3.h>
@@ -45,15 +46,15 @@ void ImGuiWrapper::update_imgui()
 	ImGui::ColorEdit3("Clear color", ImGuiWrapper::clear_color);
     ImGui::Checkbox("Draw line", &ImGuiWrapper::draw_line);
 	ImGui::Separator();
-	ImGui::DragFloat3("Position", ImGuiWrapper::debug_light_position, 0.1f, -10.f, 10.f);
-	ImGui::DragFloat3("Scale", ImGuiWrapper::debug_light_scale, 0.01f, -1.f, 1.f);
-    ImGui::Separator();
 	ImGui::Checkbox("Perspective mode", &ImGuiWrapper::perspective_mode);
     ImGui::Separator();
     ImGui::Text("%s", camera_pos_string.c_str());
 	ImGui::DragFloat("Camera speed", &ImGuiWrapper::push_strength, 1.0f, 10.f, 50.f);
-	ImGui::DragFloat("Camera fov", &ImGuiWrapper::camera_fov, 1, 30.f, 120.f);
+    ImGui::DragFloat("Camera fov", &ImGuiWrapper::camera_fov, 1, 30.f, 120.f);
 
+    ImGui::Separator();
+    ImGui::Text("World settings");
+    ImGui::SliderInt3("World size", &world_size.x, 1, 10);
 	ImGui::End();
 
     ImGui::Render();

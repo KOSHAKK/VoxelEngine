@@ -24,12 +24,6 @@ add_executable(${PROJECT_NAME}
 	src/OpenGL/IndexBuffer.cpp
 	src/OpenGL/IndexBuffer.hpp
 	
-	src/Object/Block.cpp
-	src/Object/Block.hpp
-	
-	src/Object/LightSource.hpp
-	src/Object/LightSource.cpp
-	
 	src/Object/Mesh.cpp
 	src/Object/Mesh.hpp
 	

@@ -2,6 +2,8 @@
 
 #include <glfwpp/glfwpp.h>
 
+#include <glm/vec3.hpp>
+
 namespace ImGuiWrapper
 {
 	void init_imgui(glfw::Window& pWindow);
@@ -21,6 +23,8 @@ namespace ImGuiWrapper
 
 	inline float camera_fov = 120.f;
 	inline float aspect;
+
+	inline glm::ivec3 world_size { 1,1,3 };
 
 	inline std::string camera_pos_string;
 

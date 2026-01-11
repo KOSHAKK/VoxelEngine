@@ -1,4 +1,6 @@
 ﻿#include <iostream>
+#include <chrono>
+
 
 #include <glad/gl.h>
 #include <glfwpp/glfwpp.h>
@@ -15,15 +17,10 @@
 #include <OpenGL/VertexArray.hpp>
 
 
-#include <Object/Block.hpp>
-
-
 #include <Physics/PhysicsEngine.hpp>
 
 
 #include <Render/Camera.hpp>
-
-#include <Object/LightSource.hpp>
 
 #include <Voxel/Chunk.hpp>
 #include <Render/VoxelMesher.hpp>
@@ -33,22 +30,24 @@
 
 #include <glm/gtc/quaternion.hpp>
 
-#include <chrono>
 
 
 using namespace JPH::literals;
 
 
-static int g_windowSizeX = 640*2;
-static int g_windowSizeY = 480*2-150;
+static int g_windowSizeX = 1700;
+static int g_windowSizeY = 950;
 
 float ascpect = static_cast<float>(g_windowSizeX) / static_cast<float>(g_windowSizeY);
 
 static void glfwWindowSizeCallback(GLFWwindow* pWindow, int width, int height)
 {
+    LOG_INFO("{} {}", width, height);
     g_windowSizeX = width;
     g_windowSizeY = height;
-    ascpect =  static_cast<float>(g_windowSizeX) / static_cast<float>(g_windowSizeY);
+    if (width != 0 && height != 0)
+        ascpect =  static_cast<float>(g_windowSizeX) / static_cast<float>(g_windowSizeY);
+     
     glViewport(0, 0, g_windowSizeX, g_windowSizeY);
 }
 
@@ -131,7 +130,7 @@ int main(const int argc, const char** argv) try
 
     LOG_INFO("Renderer: {}", reinterpret_cast<const char*>(glGetString(GL_RENDERER)));
     LOG_INFO("OpenGL version: {}", reinterpret_cast<const char*>(glGetString(GL_VERSION)));
-
+     
 
     glEnable(GL_DEPTH_TEST);
 
@@ -147,17 +146,30 @@ int main(const int argc, const char** argv) try
 
     ImGuiWrapper::aspect = ascpect;
 
-    const auto start{ std::chrono::steady_clock::now() };
+    glm::ivec3 world_size = ImGuiWrapper::world_size;
     
-    std::shared_ptr<World> w = std::make_shared<World>(2, 1, 2, "debug_texture");
 
+    const auto start{ std::chrono::steady_clock::now() };
+    std::shared_ptr<World> w = std::make_shared<World>(world_size.x, world_size.y, world_size.z, "debug_texture");
     const auto finish{ std::chrono::steady_clock::now() };
     const std::chrono::duration<double> elapsed_seconds{ finish - start };
     LOG_INFO("World has been created for {}s", elapsed_seconds.count());
 
+
     //glfw::swapInterval(1);
     while (!glfwWindowShouldClose(pWindow))
     {
+        if (world_size != ImGuiWrapper::world_size)
+        {
+            world_size = ImGuiWrapper::world_size;
+            const auto start{ std::chrono::steady_clock::now() };
+            w = std::make_shared<World>(world_size.x, world_size.y, world_size.z, "debug_texture");
+            const auto finish{ std::chrono::steady_clock::now() };
+            const std::chrono::duration<double> elapsed_seconds{ finish - start };
+            LOG_INFO("World has been created for {}s", elapsed_seconds.count());
+        }
+
+
         ImGuiWrapper::aspect = ascpect;
         static double lastTime = glfwGetTime();
         double currentTime = glfwGetTime();

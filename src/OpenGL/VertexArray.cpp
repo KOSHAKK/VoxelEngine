@@ -1,4 +1,4 @@
-#include "VertexArray.hpp"
+﻿#include "VertexArray.hpp"
 
 #include "common/Log.hpp"
 
@@ -19,6 +19,7 @@
 
     VertexArray& VertexArray::operator=(VertexArray&& vertex_array) noexcept
     {
+        LOG_CRITICAL("asdasd");
         m_id = vertex_array.m_id;
         m_elements_count = vertex_array.m_id;
         vertex_array.m_id = 0;
@@ -31,6 +32,8 @@
         : m_id(vertex_array.m_id)
         , m_elements_count(vertex_array.m_elements_count)
     {
+        LOG_CRITICAL("asdasd");
+
         vertex_array.m_id = 0;
         vertex_array.m_elements_count = 0;
     }
@@ -47,7 +50,6 @@
         glBindVertexArray(0);
     }
 
-
     void VertexArray::add_vertex_buffer(const VertexBuffer& vertex_buffer)
     {
         bind();
@@ -59,7 +61,7 @@
             glBindVertexBuffer(m_elements_count,
                                vertex_buffer.get_handle(),
                                current_element.offset,
-                               static_cast<GLsizei>(vertex_buffer.get_layout().get_stride()));
+                               static_cast<std::uint32_t>(vertex_buffer.get_layout().get_stride()));
 
             glVertexAttribFormat(m_elements_count,
                                  static_cast<GLint>(current_element.components_count),
