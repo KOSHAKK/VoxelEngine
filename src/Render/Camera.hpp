@@ -29,6 +29,8 @@ public:
     void move_forward(const float delta, const float dt);
     void move_right(const float delta, const float dt);
     void move_up(const float delta, const float dt);
+
+    void set_aspect_ratio(float aspect);
 private:
     void update_view_matrix();
     void update_projection_matrix();
@@ -46,4 +48,6 @@ private:
     glm::vec3 m_direction;
     glm::vec3 m_up;
     glm::vec3 m_right;
+
+    float m_aspect_ratio;
 };

@@ -2,6 +2,7 @@
 
 bool Input::m_keys_pressed[static_cast<size_t>(KeyCode::KEY_LAST) + 1] = {};
 bool Input::m_mouse_buttons_pressed[static_cast<size_t>(MouseButton::MOUSE_BUTTON_LAST) + 1] = {};
+glm::vec2 Input::m_mouse_delta{ 0.f };
 
 bool Input::IsKeyPressed(const KeyCode key_code)
 {

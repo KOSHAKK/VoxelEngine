@@ -68,6 +68,12 @@ add_executable(${PROJECT_NAME}
 	
     src/Voxel/World.cpp
     src/Voxel/World.hpp
+	
+    src/Core/Application.cpp
+    src/Core/Application.hpp
+	
+    src/Core/Window.hpp
+    src/Core/Window.cpp
 )
 
 # if (MSVC)

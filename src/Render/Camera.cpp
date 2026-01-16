@@ -63,7 +63,7 @@ void Camera::update_projection_matrix()
     {
         m_projection_matrix = glm::perspective(
             glm::radians(ImGuiWrapper::camera_fov), 
-            ImGuiWrapper::aspect, 
+            m_aspect_ratio,
             0.1f,
             10000.f
         );
@@ -109,8 +109,8 @@ void Camera::set_projection_mode(const ProjectionMode projection_mode)
 
 void Camera::set_rotate_delta(const glm::vec2& delta, float dt)
 {
-    m_rotation.x -= delta.y * dt * 22*6*3 * ImGuiWrapper::aspect;
-    m_rotation.y -= delta.x * dt * 22*6*3;
+    m_rotation.x += delta.y * dt * m_aspect_ratio * ImGuiWrapper::camera_sensivity.x;
+    m_rotation.y += delta.x * dt * ImGuiWrapper::camera_sensivity.y;
     if (m_rotation.x >= 90.f) m_rotation.x = 90.f;
     if (m_rotation.x <= -90.f) m_rotation.x = -90.f;
     update_view_matrix();
@@ -132,4 +132,9 @@ void Camera::move_up(const float delta, const float dt)
 {
     m_position += s_world_up * delta * dt;
     update_view_matrix();
+}
+
+void Camera::set_aspect_ratio(float aspect)
+{
+    m_aspect_ratio = aspect;
 }

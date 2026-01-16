@@ -10,12 +10,10 @@ out vec2 a_texCoord;
 uniform mat4 model;
 uniform mat4 projview;
 
-uniform float aspect_ratio;
 
 void main(){
 	a_color = vec4(v_light,v_light,v_light,1.0f);
 	a_texCoord = v_texCoord;
 	vec3 pos = v_position;
-	//pos.x *= aspect_ratio;
 	gl_Position = projview * model * vec4(pos, 1.0);
 }

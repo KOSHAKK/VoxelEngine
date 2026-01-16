@@ -49,8 +49,9 @@ void ImGuiWrapper::update_imgui()
 	ImGui::Checkbox("Perspective mode", &ImGuiWrapper::perspective_mode);
     ImGui::Separator();
     ImGui::Text("%s", camera_pos_string.c_str());
-	ImGui::DragFloat("Camera speed", &ImGuiWrapper::push_strength, 1.0f, 10.f, 50.f);
+	ImGui::DragFloat("Camera speed", &ImGuiWrapper::camera_speed, 1.0f, 10.f, 50.f);
     ImGui::DragFloat("Camera fov", &ImGuiWrapper::camera_fov, 1, 30.f, 120.f);
+    ImGui::SliderInt2("Camera sensivity", &ImGuiWrapper::camera_sensivity.x, 10, 100);
 
     ImGui::Separator();
     ImGui::Text("World settings");

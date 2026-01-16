@@ -5,6 +5,8 @@
 #include <glad/gl.h>
 #include <glfwpp/glfwpp.h>
 
+#include <Core/Window.hpp>
+
 
 #include <common/Log.hpp>
 #include <common/ImGuiWrapper.hpp>
@@ -31,68 +33,7 @@
 #include <glm/gtc/quaternion.hpp>
 
 
-
 using namespace JPH::literals;
-
-
-static int g_windowSizeX = 1700;
-static int g_windowSizeY = 950;
-
-float ascpect = static_cast<float>(g_windowSizeX) / static_cast<float>(g_windowSizeY);
-
-static void glfwWindowSizeCallback(GLFWwindow* pWindow, int width, int height)
-{
-    LOG_INFO("{} {}", width, height);
-    g_windowSizeX = width;
-    g_windowSizeY = height;
-    if (width != 0 && height != 0)
-        ascpect =  static_cast<float>(g_windowSizeX) / static_cast<float>(g_windowSizeY);
-     
-    glViewport(0, 0, g_windowSizeX, g_windowSizeY);
-}
-
-static void glfwKeyCallback(glfw::Window& pWindow, glfw::KeyCode keyCode_, int scanCode_, glfw::KeyState state_, glfw::ModifierKeyBit modifiers_)
-{
-    if (state_ == glfw::KeyState::Press) {
-        Input::PressKey(static_cast<KeyCode>(static_cast<int>(keyCode_)));
-    }
-    else if (state_ == glfw::KeyState::Release) {
-        Input::ReleaseKey(static_cast<KeyCode>(static_cast<int>(keyCode_)));
-    }
-
-    if (keyCode_ == glfw::KeyCode::Escape) {
-        glfwSetWindowShouldClose(pWindow, GLFW_TRUE);
-    }
-}
-
-void glfwMouseButtonCallback(glfw::Window& window_, glfw::MouseButton button_, glfw::MouseButtonState state_, glfw::ModifierKeyBit modifiers_)
-{
-    if (state_ == glfw::MouseButtonState::Press) {
-        Input::PressMouseButton(static_cast<MouseButton>(static_cast<int>(button_)));
-    }
-    else if (state_ == glfw::MouseButtonState::Release) {
-        Input::ReleaseMouseButton(static_cast<MouseButton>(static_cast<int>(button_)));
-    }
-}
-
-bool is_mouse_moving = false;
-glm::vec2 mouse_delta;
-void glfwMousePosCallback(glfw::Window& window_, double xpos, double ypos)
-{
-    static glm::vec2 mouse_prev_pos;
-
-    double x;
-    double y;
-
-    glfwGetCursorPos(window_, &x, &y);
-
-    mouse_delta.x = (mouse_prev_pos.x - x) / 5.f;
-    mouse_delta.y = (mouse_prev_pos.y - y) / 5.f;
-
-    mouse_prev_pos = { x,y };
-
-    is_mouse_moving = true;
-}
 
 
 int main(const int argc, const char** argv) try
@@ -104,29 +45,19 @@ int main(const int argc, const char** argv) try
 
     [[maybe_unused]] auto GLFW = glfw::init();
 
-    glfw::WindowHints{ .contextVersionMajor = 4,
-                        .contextVersionMinor = 6,
-                        .openglProfile = glfw::OpenGlProfile::Core }.apply();
+    glfwSetErrorCallback([](int error, const char* description) {
+        std::cerr << "GLFW Error " << error << ": " << description << std::endl;
+    });
 
-    glfw::Window pWindow{ g_windowSizeX, g_windowSizeY, "VoxelEngine" };
+    Window window(1700, 950, "VoxelEngine");
 
-
-
-
-    pWindow.framebufferSizeEvent.setCallback(glfwWindowSizeCallback);
-
-    pWindow.keyEvent.setCallback(glfwKeyCallback);
-    pWindow.mouseButtonEvent.setCallback(glfwMouseButtonCallback);
-    pWindow.cursorPosEvent.setCallback(glfwMousePosCallback);
-
-    glfw::makeContextCurrent(pWindow);
 
     if (!gladLoadGL(glfwGetProcAddress))
     {
         LOG_CRITICAL("Can't load GLAD!");
     }
     
-    ImGuiWrapper::init_imgui(pWindow);
+    ImGuiWrapper::init_imgui(window.get_window());
 
     LOG_INFO("Renderer: {}", reinterpret_cast<const char*>(glGetString(GL_RENDERER)));
     LOG_INFO("OpenGL version: {}", reinterpret_cast<const char*>(glGetString(GL_VERSION)));
@@ -141,11 +72,6 @@ int main(const int argc, const char** argv) try
     ResourceManager::load_texture("debug_texture", "res/Textures/block.png");
     auto shared = ResourceManager::load_shader_program("voxel_shared", "res/Shaders/main.glslv", "res/Shaders/main.glslf");
 
-
-   // Block mesh("debug_texture", { 0.f, 0.f, 0.f }, {1.f, 1.f, 1.f});
-
-    ImGuiWrapper::aspect = ascpect;
-
     glm::ivec3 world_size = ImGuiWrapper::world_size;
     
 
@@ -157,8 +83,13 @@ int main(const int argc, const char** argv) try
 
 
     //glfw::swapInterval(1);
-    while (!glfwWindowShouldClose(pWindow))
+    while (!glfwWindowShouldClose(window.get_window()))
     {
+        camera.set_aspect_ratio(window.get_aspect());
+
+        if (Input::IsKeyPressed(KeyCode::KEY_ESCAPE)) glfwSetWindowShouldClose(window.get_window(), GLFW_TRUE);
+
+
         if (world_size != ImGuiWrapper::world_size)
         {
             world_size = ImGuiWrapper::world_size;
@@ -170,31 +101,30 @@ int main(const int argc, const char** argv) try
         }
 
 
-        ImGuiWrapper::aspect = ascpect;
         static double lastTime = glfwGetTime();
         double currentTime = glfwGetTime();
         float deltaTime = float(currentTime - lastTime);
         lastTime = currentTime;
 
         if (Input::IsKeyPressed(KeyCode::KEY_W)) {
-            camera.move_forward(ImGuiWrapper::push_strength, deltaTime);
+            camera.move_forward(ImGuiWrapper::camera_speed, deltaTime);
         }
         else if (Input::IsKeyPressed(KeyCode::KEY_S)) {
-            camera.move_forward(-ImGuiWrapper::push_strength, deltaTime);
+            camera.move_forward(-ImGuiWrapper::camera_speed, deltaTime);
         }
 
         if (Input::IsKeyPressed(KeyCode::KEY_A)) {
-            camera.move_right(-ImGuiWrapper::push_strength, deltaTime);
+            camera.move_right(-ImGuiWrapper::camera_speed, deltaTime);
         }
         else if (Input::IsKeyPressed(KeyCode::KEY_D)) {
-            camera.move_right(ImGuiWrapper::push_strength, deltaTime);
+            camera.move_right(ImGuiWrapper::camera_speed, deltaTime);
         }
 
         if (Input::IsKeyPressed(KeyCode::KEY_LEFT_SHIFT)) {
-            camera.move_up(ImGuiWrapper::push_strength, deltaTime);
+            camera.move_up(ImGuiWrapper::camera_speed, deltaTime);
         }
         else if (Input::IsKeyPressed(KeyCode::KEY_LEFT_CONTROL)) {
-            camera.move_up(-ImGuiWrapper::push_strength, deltaTime);
+            camera.move_up(-ImGuiWrapper::camera_speed, deltaTime);
         }
 
 
@@ -216,15 +146,11 @@ int main(const int argc, const char** argv) try
 
         //mesh.draw(shared, camera);
         shared->bind();
-        shared->set_float("aspect_ratio", ascpect);
-
-
 
         w->draw(shared, camera);
 
-        if (is_mouse_moving && Input::IsMouseButtonPressed(MouseButton::MOUSE_BUTTON_2)) {
-            camera.set_rotate_delta(mouse_delta, deltaTime);
-            is_mouse_moving = false;
+        if (Input::IsMouseButtonPressed(MouseButton::MOUSE_BUTTON_2)) {
+            camera.set_rotate_delta(Input::get_mouse_delta(), deltaTime);
         } 
 
 
@@ -236,7 +162,8 @@ int main(const int argc, const char** argv) try
         ImGuiWrapper::update_imgui();
 
 
-        pWindow.swapBuffers();
+        window.get_window().swapBuffers();
+        window.update();
         glfw::pollEvents();
 
 
