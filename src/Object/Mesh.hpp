@@ -9,7 +9,7 @@
 class Mesh
 {
 public:
-    Mesh(std::shared_ptr<VertexBuffer> vertex_buffer, int vertex_count);
+    Mesh(std::shared_ptr<VertexBuffer> vertex_buffer, std::size_t vertex_count);
 
     ~Mesh() = default;
 

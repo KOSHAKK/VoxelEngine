@@ -9,78 +9,13 @@ project(${PROJECT_NAME})
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_executable(${PROJECT_NAME} 
-	src/main.cpp
-	
-	src/OpenGL/ShaderProgram.cpp
-	src/OpenGL/ShaderProgram.hpp
-	
-	src/OpenGL/VertexBuffer.cpp
-	src/OpenGL/VertexBuffer.hpp
-	
-	src/OpenGL/VertexArray.cpp
-	src/OpenGL/VertexArray.hpp
-	
-	src/OpenGL/IndexBuffer.cpp
-	src/OpenGL/IndexBuffer.hpp
-	
-	src/Object/Mesh.cpp
-	src/Object/Mesh.hpp
-	
-	src/common/ImGuiWrapper.cpp
-	src/common/ImGuiWrapper.hpp
-	
-	src/common/Log.hpp
-	
-	src/common/Keys.hpp
-	
-	src/common/Input.cpp
-	src/common/Input.hpp
-	
-	src/Render/Camera.cpp
-	src/Render/Camera.hpp
-	
-	src/Render/Texture2D.cpp
-	src/Render/Texture2D.hpp
-	
-	src/Render/VoxelMesher.cpp
-	src/Render/VoxelMesher.hpp
-	
-	src/Physics/PhysicsEngine.cpp
-	src/Physics/PhysicsEngine.hpp
-
-	src/Resources/ResourceManager.cpp
-	src/Resources/ResourceManager.hpp
-	
-	src/Resources/stb_image.hpp
-
-	src/bindings/imgui_impl_glfw.cpp
-    src/bindings/imgui_impl_glfw.h
-    src/bindings/imgui_impl_opengl3.cpp
-    src/bindings/imgui_impl_opengl3.h
-    src/bindings/imgui_impl_opengl3_loader.h
-	
-    src/Voxel/Chunk.cpp
-    src/Voxel/Chunk.hpp
-	
-    src/Voxel/Voxel.cpp
-    src/Voxel/Voxel.hpp
-	
-    src/Voxel/World.cpp
-    src/Voxel/World.hpp
-	
-    src/Core/Application.cpp
-    src/Core/Application.hpp
-	
-    src/Core/Window.hpp
-    src/Core/Window.cpp
+file(GLOB_RECURSE PROJECT_SOURCES
+    CONFIGURE_DEPENDS
+    src/*.cpp
+    src/*.hpp
 )
 
-# if (MSVC)
-    # target_compile_options(GLFWPP INTERFACE /W0)
-# else()
-    # target_compile_options(GLFWPP INTERFACE -w)
-# endif()
+add_executable(${PROJECT_NAME} ${PROJECT_SOURCES})
 
 
 target_include_directories(${PROJECT_NAME} PUBLIC src)
@@ -97,9 +32,6 @@ target_link_libraries(${PROJECT_NAME} PRIVATE GLFWPP)
 find_package(glad REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE glad::glad)
 
-# find_package(glfw3 REQUIRED)
-# target_link_libraries(${PROJECT_NAME} PRIVATE glfw)
-
 find_package(spdlog REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE spdlog::spdlog)
 
@@ -113,13 +45,11 @@ find_package(Jolt REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE Jolt::Jolt)
 
 
-# target_compile_definitions(${PROJECT_NAME} PRIVATE
-    # JPH_DEBUG_RENDERER
-	# JPH_FLOATING_POINT_EXCEPTIONS_ENABLED
-	# JPH_PROFILE_ENABLED
-	# JPH_OBJECT_STREAM
-# )
-
+if (MSVC)
+    target_compile_options(GLFWPP INTERFACE /W0)
+else()
+    target_compile_options(GLFWPP INTERFACE -w)
+endif()
 
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${PROJECT_NAME})
 set_target_properties(${PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/)

@@ -5,7 +5,7 @@
 #include <common/Log.hpp>
 #include <common/ImGuiWrapper.hpp>
 
-Mesh::Mesh(std::shared_ptr<VertexBuffer> vertex_buffer, int vertex_count)
+Mesh::Mesh(std::shared_ptr<VertexBuffer> vertex_buffer, std::size_t vertex_count)
     : m_vertex_buffer(vertex_buffer),
       m_vertex_count(vertex_count)
 {
