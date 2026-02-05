@@ -1,6 +1,7 @@
 ﻿#include "Chunk.hpp"
 
 #include <iostream>
+#include <cmath>
 
 static inline size_t idx(int x, int y, int z) {
 	return static_cast<size_t>((x + Chunk::CHUNK_X * (y + Chunk::CHUNK_Y * z)));

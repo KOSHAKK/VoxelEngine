@@ -5,7 +5,7 @@
             "name": "conan-deb",
             "binaryDir": "build",
             "cacheVariables": {
-                "CMAKE_TOOLCHAIN_FILE": "build/generators/conan_toolchain.cmake",
+                "CMAKE_TOOLCHAIN_FILE": "build/Debug/generators/conan_toolchain.cmake",
                 "CMAKE_PREFIX_PATH": "build/generators"
             }
         }
@@ -14,6 +14,7 @@
         "conan": {}
     },
     "include": [
-        "build/generators/CMakePresets.json"
+        "cmake-build-debug/build/Debug/generators/CMakePresets.json",
+        "build/Debug/generators/CMakePresets.json"
     ]
 }

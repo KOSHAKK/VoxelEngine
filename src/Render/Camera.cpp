@@ -9,10 +9,12 @@
 
 #include <common/ImGuiWrapper.hpp>
 
-Camera::Camera(const glm::vec3& position,
-    const glm::vec3& rotation,
-    const ProjectionMode projection_mode)
-    : m_position(position), 
+Camera::Camera(const float aspect,
+               const glm::vec3& position,
+               const glm::vec3& rotation,
+               const ProjectionMode projection_mode)
+    : m_aspect_ratio(aspect),
+      m_position(position),
       m_rotation(rotation), 
       m_projection_mode(projection_mode),
       m_direction(0.f, 0.f, 0.f),

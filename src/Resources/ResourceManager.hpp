@@ -20,6 +20,7 @@ public:
 	ResourceManager() = delete;
 
 	static void init(const std::string& executable_path);
+	static void destroy();
 	static std::string get_file_text(const std::string& file_path);
 
 	static std::shared_ptr<ShaderProgram> load_shader_program(const std::string& name,

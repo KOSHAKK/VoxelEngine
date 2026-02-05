@@ -65,10 +65,10 @@ int main(const int argc, const char** argv) try
 
     glEnable(GL_DEPTH_TEST);
 
-    Camera camera;
+    Camera camera(window.get_aspect());
     camera.set_position({ 8.f, 8.f, 24.f });
 
-     
+
     ResourceManager::load_texture("debug_texture", "res/Textures/block.png");
     auto shared = ResourceManager::load_shader_program("voxel_shared", "res/Shaders/main.glslv", "res/Shaders/main.glslf");
 
@@ -165,9 +165,9 @@ int main(const int argc, const char** argv) try
         window.get_window().swapBuffers();
         window.update();
         glfw::pollEvents();
-
-
     }
+
+    ResourceManager::destroy();
     ImGuiWrapper::destroy_imgui_context();
     return 0;
 }

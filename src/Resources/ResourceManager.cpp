@@ -15,6 +15,13 @@ void ResourceManager::init(const std::string& executable_path)
 	m_executable_path = executable_path.substr(0, i);
 }
 
+void ResourceManager::destroy()
+{
+	m_shader_programs.clear();
+	m_textures.clear();
+	m_font.clear();
+}
+
 std::string ResourceManager::get_file_text(const std::string& file_path)
 {
 	std::string path = m_executable_path + "/" + file_path;

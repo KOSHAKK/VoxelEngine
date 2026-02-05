@@ -13,7 +13,7 @@ public:
     };
 
 
-    Camera(const glm::vec3& position = { 0, 0, 0 }, const glm::vec3& rotation = { 0, 0, 0 }, const ProjectionMode projection_mode = ProjectionMode::Perspective);
+    Camera(const float aspect, const glm::vec3& position = { 0, 0, 0 }, const glm::vec3& rotation = { 0, 0, 0 }, const ProjectionMode projection_mode = ProjectionMode::Perspective);
 
     void set_position(const glm::vec3& position);
     void set_rotation(const glm::vec3& rotation);
