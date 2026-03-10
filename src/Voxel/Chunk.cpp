@@ -7,6 +7,7 @@ static inline size_t idx(int x, int y, int z) {
 	return static_cast<size_t>((x + Chunk::CHUNK_X * (y + Chunk::CHUNK_Y * z)));
 }
 
+
 Chunk::Chunk()
 {
 	for (int y = 0; y < CHUNK_Y; y++) {
